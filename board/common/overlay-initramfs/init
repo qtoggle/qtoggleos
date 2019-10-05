@@ -1,0 +1,115 @@
+#!/bin/sh
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+DISK_TIMEOUT=10
+
+msg() {
+    echo " * $1"
+}
+
+msg "Mounting pseudo filesystems"
+mount -t devtmpfs devtmpfs /dev
+mount -t proc proc /proc
+
+ROOT_DEV=$(cat /proc/cmdline | grep -oE 'root=[/a-z0-9]+' | cut -d '=' -f 2)
+if echo ${ROOT_DEV:-2} | grep -E 'p[0-9]' &>/dev/null; then  # e.g. /dev/mmcblk0p2
+    DISK_DEV=${ROOT_DEV:0:$((${#ROOT_DEV}-2))}
+    BOOT_DEV=${DISK_DEV}p1
+    DATA_DEV=${DISK_DEV}p3
+else  # e.g. /dev/sdc2
+    DISK_DEV=${ROOT_DEV:0:$((${#ROOT_DEV}-1))}
+    BOOT_DEV=${DISK_DEV}1
+    DATA_DEV=${DISK_DEV}3
+fi
+
+msg "Waiting for sdcard"
+count=0
+while true; do
+    if [ ${count} -ge ${DISK_TIMEOUT} ]; then
+        break
+    fi
+    if [[ -b ${ROOT_DEV} ]]; then
+        break
+    fi
+    count=$((count + 1))
+    sleep 1
+done
+
+msg "Disk device is ${DISK_DEV}"
+msg "Boot device is ${BOOT_DEV}"
+msg "Root device is ${ROOT_DEV}"
+msg "Data device is ${DATA_DEV}"
+
+FW_DIR=/data/.fwupdate
+FW_FILE=${FW_DIR}/firmware.img.gz
+FW_FILE_EXTR=${FW_DIR}/firmware.img
+
+ROOT_INFO_FILE=${FW_DIR}/root_info
+
+cleanup_on_exit() {
+    msg "Switching to normal boot"
+    /remove_initramfs
+
+    msg "Unmounting data partition"
+    umount /data
+    
+    msg "Unmounting boot partition"
+    umount /boot
+    
+    msg "Syncing"
+    sync
+    
+    msg "Rebooting"
+    echo 'b' > /proc/sysrq-trigger
+}
+
+trap cleanup_on_exit EXIT
+
+if [ -x /prepare_initramfs ]; then
+    msg "Preparing initramfs"
+    /prepare_initramfs
+fi
+
+msg "Mounting boot partition"
+mount ${BOOT_DEV} /boot
+
+msg "Mounting data partition"
+mount ${DATA_DEV} /data
+
+if ! [[ -r ${FW_FILE_EXTR} ]]; then
+    msg "No firmware found, aborting"
+    exit 1
+fi
+
+if ! [[ -r ${ROOT_INFO_FILE} ]]; then
+    msg "No root partition info, aborting"
+    exit 1
+fi
+
+msg "Copying root image"
+root_info=$(cat ${ROOT_INFO_FILE})
+count=0
+
+for i in ${root_info}; do count=$((count + 1)); done
+
+if [[ ${count} == 3 ]]; then
+    root_start=$(echo ${root_info} | cut -d ' ' -f 1)
+    root_size=$(echo ${root_info} | cut -d ' ' -f 3)
+    root_start=$((root_start / 2048))
+    root_size=$((root_size / 2048))
+
+elif [[ ${count} == 2 ]]; then
+    # compatibility with old info file format
+    root_start=$(echo ${root_info} | cut -d ' ' -f 1)
+    root_size=$(echo ${root_info} | cut -d ' ' -f 2)
+
+else
+    msg "Unrecognized root partition info file format"
+    exit 1
+fi
+
+dd if=${FW_FILE_EXTR} skip=${root_start} of=${ROOT_DEV} bs=1048576 count=${root_size} || exit 1
+
+msg "Cleaning up"
+rm -rf ${FW_DIR}
+

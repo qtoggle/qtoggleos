@@ -1,0 +1,72 @@
+#!/bin/bash
+
+DATA_OFFS="1024"  # up to 1024MB reserved for boot + root
+
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+case "$1" in
+    start)
+        msg_begin "Detecting disk device"
+        root_dev=$(cat /proc/cmdline | grep -oE 'root=[/a-z0-9]+' | cut -d '=' -f 2)
+        if [[ "${root_dev}" =~ ^([/a-z0-9]+)(p[0-9])$ ]]; then  # e.g. /dev/mmcblk0p2
+            disk_dev=${BASH_REMATCH[1]}
+            boot_dev=${disk_dev}p1
+            data_dev=${disk_dev}p3
+        elif [[ "${root_dev}" =~ ^([/a-z0-9]+)([0-9])$ ]]; then  # e.g. /dev/sdc2
+            disk_dev=${BASH_REMATCH[1]}
+            boot_dev=${disk_dev}1
+            data_dev=${disk_dev}3
+        else
+            msg_fail "unknown (${root_dev})"
+            exit 1
+        fi
+        msg_done "${disk_dev}"
+
+        test -b ${data_dev} && exit 0
+
+        msg_begin "Creating data partition"
+        data_start=$((DATA_OFFS * 2048))
+        echo -e "n
+            p
+            3
+            ${data_start}
+            \n
+            w" | /sbin/fdisk ${disk_dev} &>/dev/null
+        partx -a ${disk_dev} &>/dev/null
+        test -b ${data_dev} && msg_done || msg_fail
+
+        msg_begin "Formatting data partition"
+        mkfs.ext4 -q ${data_dev}
+        test $? == 0 && msg_done || msg_fail
+
+        msg_begin "Mounting data partition"
+        mount -T /etc/fstab.disk /data
+        test $? == 0 && msg_done || msg_fail
+
+        msg_begin "Creating required data files"
+        cp -pur /usr/share/dataskel/* /data
+        cp /etc/version /data/etc/version
+        ln -s /usr/share/zoneinfo/UTC /data/etc/localtime
+        touch /data/etc/adjtime
+        sync
+        msg_done
+        
+        msg_begin "Setting empty root password"
+        PASSWORD="" adminpasswd
+        msg_done
+
+        # mount other partitions depending on data
+        mount -T /etc/fstab.disk -a
+        mount -T /etc/fstab.extra -a
+        ;;
+
+    stop)
+        true
+        ;;
+
+    *)
+        echo "Usage: $0 {start}"
+        exit 1
+esac
+

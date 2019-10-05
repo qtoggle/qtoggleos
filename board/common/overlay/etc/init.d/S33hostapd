@@ -1,0 +1,93 @@
+#!/bin/bash
+
+SYS_CONF="/etc/hostapd.conf"
+BOOT_CONF="/boot/hostapd.conf"
+CONF="/data/etc/hostapd.conf"
+
+LOG="/var/log/hostapd.log"
+PROG="/usr/sbin/hostapd"
+
+WATCH_CONF="/data/etc/watch.conf"
+
+LINK_WATCH=yes
+LINK_WATCH_TIMEOUT=20
+
+
+test -x ${PROG} || exit 0
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+prepare_conf ${CONF} ${SYS_CONF} ${BOOT_CONF}
+test -s ${CONF} || exit 0
+
+test -s ${WATCH_CONF} && source ${WATCH_CONF}
+
+
+running() {
+    killall -0 hostapd &> /dev/null
+}
+
+watch() {
+    while true; do
+        sleep 5
+        if ! running; then
+            logger -t hostapd "dead, calling panic action"
+            panic_action hostapd
+            break
+        fi
+    done
+}
+
+start() {
+    msg_begin "Starting hostapd"
+
+    # wait up to 5 seconds for interface
+    count=0
+    while ! ifconfig ${iface} >/dev/null 2>&1; do
+        sleep 1
+        count=$((${count} + 1))
+        if [[ ${count} -ge 5 ]]; then
+            msg_fail "no device"
+            return 1
+        fi
+    done
+
+    iface=$(cat ${CONF} | grep interface | cut -d '=' -f 2)
+    module=$(basename $(readlink /sys/class/net/${iface}/device/driver/module 2>/dev/null) 2>/dev/null)
+
+    iwconfig ${iface} power off &> /dev/null
+    ${PROG} ${CONF} &> ${LOG} &
+
+    if [[ "${LINK_WATCH}" == "yes" ]]; then
+        watch &
+    fi
+
+    test -n "${module}" && msg_done "done (${module})"|| msg_done
+}
+
+stop() {
+    msg_begin "Stopping hostpad"
+    killall hostapd &>/dev/null
+    ps | grep hostapd | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+    msg_done
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+        
+    stop)
+        stop
+        ;;
+        
+    restart)
+        stop
+        start
+        ;;
+    
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+

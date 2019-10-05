@@ -1,0 +1,175 @@
+#!/bin/bash
+
+PROG_DATE="/bin/date"
+PROG_NTPD="/usr/sbin/ntpd"
+PROG_SNTP="/usr/bin/sntp"
+LOG_SNTP="/var/log/sntp.log"
+
+SYS_CONF="/etc/date.conf"
+BOOT_CONF="/boot/date.conf"
+CONF="/data/etc/date.conf"
+
+SYS_NTP_CONF="/etc/ntp.conf"
+BOOT_NTP_CONF="/boot/ntp.conf"
+NTP_CONF="/data/etc/ntp.conf"
+
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+prepare_conf ${CONF} ${SYS_CONF} ${BOOT_CONF}
+prepare_conf ${NTP_CONF} ${SYS_NTP_CONF} ${BOOT_NTP_CONF}
+
+test -s ${CONF} || exit 0
+
+test "${OS_NETWORKLESS}" == "true" && exit 0
+
+DATE_TIMEOUT=10
+DATE_METHOD=sntp
+DATE_HOST="google.com"
+DATE_INTERVAL="900"
+DATE_NTP_SERVER=""
+
+source ${CONF}
+
+
+set_current_date_http() {
+    curl_args="-v -s -m ${DATE_TIMEOUT} -H \"Cache-Control: no-cache\" -X GET"
+    url="http://${DATE_HOST}?_=${RANDOM}"
+    date_str=$(curl ${curl_args} ${url} 2>&1 | grep Date | sed -e 's/< Date: //')
+    if [[ -n "${date_str}" ]]; then
+        ${PROG_DATE} -u -D "%a, %d %b %Y %H:%M:%S" -s "${date_str}" > /dev/null
+        logger -t date "current system date/time set to $(date) via HTTP"
+        return 0
+    else
+        logger -t date "failed to set current system date/time via HTTP"
+        return 1
+    fi
+}
+
+set_current_date_ntp() {
+    ${PROG_NTPD} -gq &>/dev/null
+    if [[ $? == 0 ]]; then
+        logger -t date "current system date/time set to $(date) via NTP"
+        return 0
+    else
+        logger -t date "failed to set current system date/time via NTP"
+        return 1
+    fi
+}
+
+set_current_date_sntp() {
+    sntp_args="-t ${DATE_TIMEOUT} -K /var/lib/ntp/kod -Ss"
+    server=$(cat ${NTP_CONF} | grep server | head -n 1 | cut -d ' ' -f 2)
+    ${PROG_SNTP} ${sntp_args} ${server} &>${LOG_SNTP}
+    if [[ $? == 0 ]]; then
+        logger -t date "current system date/time set to $(date) via SNTP"
+        return 0
+    else
+        logger -t date "failed to set current system date/time via SNTP"
+        return 1
+    fi
+}
+
+
+start_http() {
+    msg_begin "Setting current date using HTTP"
+    if set_current_date_http; then
+        sleep_interval=${DATE_INTERVAL}
+        msg_done "$(${PROG_DATE})"
+    else
+        sleep_interval=${DATE_TIMEOUT}
+        msg_fail
+    fi
+    
+    msg_begin "Starting http date updater"
+    while true; do
+        sleep ${sleep_interval}
+        if set_current_date_http; then
+            sleep_interval=${DATE_INTERVAL}
+        else
+            sleep_interval=${DATE_TIMEOUT}
+        fi
+    done &
+    msg_done
+}
+
+start_ntp() {
+    mkdir -p /var/lib/ntp
+    touch /var/lib/ntp/kod
+
+    cat ${NTP_CONF} | grep -v iburst > ${NTP_CONF}.tmp
+
+    if [[ -n "${DATE_NTP_SERVER}" ]]; then
+        echo "server ${DATE_NTP_SERVER} iburst" > ${NTP_CONF}
+    else
+        cat ${SYS_NTP_CONF} | grep iburst > ${NTP_CONF}
+    fi
+
+    cat ${NTP_CONF}.tmp >> ${NTP_CONF}
+    rm ${NTP_CONF}.tmp
+
+    if [[ "${DATE_METHOD}" == "sntp" ]]; then
+        msg_begin "Setting current date using SNTP"
+        set_current_date_sntp
+        test $? == 0 && msg_done "$(${PROG_DATE})" || msg_fail
+    else # assuming ntp
+        msg_begin "Setting current date using NTP"
+        set_current_date_ntp || set_current_date_ntp
+        test $? == 0 && msg_done "$(${PROG_DATE})" || msg_fail
+    fi
+
+    msg_begin "Starting ntpd"
+    ${PROG_NTPD} -g -c ${NTP_CONF}
+    test $? == 0 && msg_done || msg_fail
+}
+
+stop_http() {
+    msg_begin "Stopping date updater"
+    ps | grep S50date | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+    test $? == 0 && msg_done || msg_fail
+}
+
+stop_ntp() {
+    msg_begin "Stopping ntpd"
+    killall -q $(basename ${PROG_NTPD})
+    test $? == 0 && msg_done || msg_fail
+}
+
+start() {
+    if [[ "${DATE_METHOD}" == "http" ]]; then
+        start_http
+    else # ntp or sntp
+        start_ntp
+    fi
+
+    echo "system date is $(${PROG_DATE} '+%Y-%m-%d %H:%M:%S')" > /dev/kmsg
+}
+
+stop() {
+    if [[ "${DATE_METHOD}" == "http" ]]; then
+        stop_http
+    else # ntp or sntp
+        stop_ntp
+    fi        
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+
+    restart)
+        stop
+        start
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?

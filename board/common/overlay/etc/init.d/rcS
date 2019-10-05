@@ -1,0 +1,31 @@
+#!/bin/sh
+
+BOOT_LOG=/var/log/boot.log
+TMP_BOOT_LOG=/tmp/_boot.log
+PID_FILE=/tmp/rc.pid
+
+set -a
+test -s /etc/environment && source /etc/environment
+test -s /data/etc/environment && source /data/etc/environment
+test -s /boot/etc/environment && source /boot/etc/environment
+set +a
+
+source /etc/init.d/base
+
+echo "---- booting ${OS_NAME} ${OS_VERSION} ----" >> ${TMP_BOOT_LOG}
+
+# start all init scripts in /etc/init.d,
+# executing them in numerical order.
+(for i in /etc/init.d/S??* /etc/init.d/bootdone; do
+    if ! [[ -x "${i}" ]]; then continue; fi
+    if [[ -f /data/etc/no_$(basename ${i}) ]]; then continue; fi
+    ${i} start || break
+done& echo $! > ${PID_FILE}) | tee -a ${TMP_BOOT_LOG} &
+
+pid=$(cat ${PID_FILE})
+while kill -0 ${pid} 2>/dev/null; do
+    sleep 1
+done
+
+test -d $(dirname ${BOOT_LOG}) && cat ${TMP_BOOT_LOG} >> ${BOOT_LOG}
+

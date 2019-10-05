@@ -1,0 +1,3 @@
+config BR2_PACKAGE_QTOGGLESERVER
+	bool "qtoggleserver"
+	depends on BR2_PACKAGE_PYTHON3

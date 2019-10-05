@@ -1,0 +1,6 @@
+#!/bin/bash
+
+/bin/mkdir -p /dev/pts
+/bin/mkdir -p /dev/shm
+/bin/mount --make-shared /
+/bin/mount -T /etc/fstab.sys -a

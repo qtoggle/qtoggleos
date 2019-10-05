@@ -1,0 +1,57 @@
+#!/bin/bash
+
+CONF="/etc/udev/udev.conf"
+PROG="/sbin/udevd"
+PROG_UA="/sbin/udevadm"
+
+
+test -f ${PROG} || exit 0
+test -s ${CONF} || exit 0
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+source ${CONF}
+
+
+start() {
+    msg_begin "Starting eudev"
+    echo '\000\000\000\000' > /proc/sys/kernel/hotplug
+    ${PROG} --daemon --resolve-names=never
+    test $? == 0 && msg_done || msg_fail
+
+    ${PROG_UA} trigger --type=subsystems --action=add
+    ${PROG_UA} trigger --type=devices --action=add
+    ${PROG_UA} settle --timeout=30
+
+    return 0
+}
+
+stop() {
+    msg_begin "Stopping eudev"
+    ${PROG_UA} control --stop-exec-queue
+    killall -q $(basename ${PROG})
+    msg_done
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+
+    stop)
+        stop
+        ;;
+    
+    restart)
+        stop
+        start
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit $?
+

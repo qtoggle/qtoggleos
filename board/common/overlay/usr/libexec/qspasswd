@@ -1,0 +1,5 @@
+#!/bin/bash
+
+test "$QS_USERNAME" == "admin" || exit 0
+PASSWORD="$QS_PASSWORD" /usr/sbin/adminpasswd
+

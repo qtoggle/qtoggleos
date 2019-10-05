@@ -1,0 +1,34 @@
+#!/bin/bash
+
+SYS_CONF="/etc/firewall.sh"
+BOOT_CONF="/boot/firewall.sh"
+CONF="/data/etc/firewall.sh"
+
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+prepare_conf ${CONF} ${SYS_CONF} ${BOOT_CONF}
+test -s ${CONF} || exit 0
+
+
+start() {
+    msg_begin "Starting firewall"
+
+    bash ${CONF}  
+
+    test $? == 0 && msg_done || msg_fail
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+        
+    stop)
+        ;;
+        
+    *)
+        echo "Usage: $0 {start}"
+        exit 1
+esac
+

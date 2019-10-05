@@ -1,0 +1,66 @@
+#!/bin/bash
+
+CONF="/data/etc/watch.conf"
+NETWATCH_RETRIES=3
+NETWATCH_TIMEOUT=5
+NETWATCH_INTERVAL=20
+
+
+# watch configuration is already prepared by wifi init script
+
+test -s ${CONF} || exit 0
+source ${CONF}
+
+test -n "${NETWATCH_HOST}" || exit 0
+test -n "${NETWATCH_PORT}" || exit 0
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+test "${OS_NETWORKLESS}" == "true" && exit 0
+
+
+watch() {
+    count=0
+    NETWATCH_RETRIES=$((${NETWATCH_RETRIES} - 1))
+    while true; do
+        sleep ${NETWATCH_INTERVAL}
+        if nc -z -w ${NETWATCH_TIMEOUT} ${NETWATCH_HOST} ${NETWATCH_PORT} </dev/null >/dev/null 2>&1; then
+            count=0
+        else
+            if [[ ${count} -lt ${NETWATCH_RETRIES} ]]; then
+                logger -t netwatch "cannot connect to ${NETWATCH_HOST}:${NETWATCH_PORT}"
+                count=$((${count} + 1))
+                continue
+            else
+                logger -t netwatch "cannot connect to ${NETWATCH_HOST}:${NETWATCH_PORT}, calling panic action"
+                panic_action netwatch
+            fi
+        fi
+    done
+}
+
+case "$1" in
+    start)
+        msg_begin "Starting netwatch"
+        watch &
+        msg_done
+        ;;
+
+    stop)
+        msg_begin "Stopping netwatch"
+        ps | grep netwatch | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+        msg_done
+        ;;
+
+    restart)
+        stop
+        start
+        ;;
+        
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?
+

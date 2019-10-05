@@ -1,0 +1,29 @@
+{
+    "logging": {
+        "root": {
+            "level": "INFO",
+            "handlers": ["console"]
+        }
+    },
+
+    "server": {
+        "port": 80
+    },
+
+    "persist": {
+        "driver": "qtoggleserver.drivers.persist.RedisDriver",
+        "host": "127.0.0.1",
+        "port": 6379,
+        "db": 0
+    },
+
+    "system": {
+        "date_support": true,
+        "fwupdate_driver": "qtoggleserver.drivers.fwupdate.ThingOSDriver"
+    },
+
+    "password_hook": "/usr/libexec/qspasswd",
+    "device_name_hooks": {
+        "set": "/usr/libexec/qshostname"
+    }
+}

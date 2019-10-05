@@ -1,0 +1,3 @@
+source $(dirname $0)/board/common/overlay/etc/os.conf
+export BITBUCKET_PRIVATE_CREDENTIALS=$os_firmware_username:$os_firmware_password
+
