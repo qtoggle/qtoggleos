@@ -9,17 +9,17 @@ Signed-off-by: Samuel Martin <s.martin49@gmail.com>
 +++ b/src/cpp/urg/ScipHandler.cpp	2016-09-11 16:11:24.380832543 +0200
 @@ -120,7 +120,7 @@ struct ScipHandler::pImpl
  
-       // QT �̔��s
+       // QT Ì­s
        int return_code = -1;
 -      char qt_expected_response[] = { 0, -1 };
 +      char qt_expected_response[] = { 0, (char)-1 };
-       // return_code ���g���������߁AsetLaserOutput() ��p������ QT �𑗐M����
+       // return_code ðg¢œ¢œßAsetLaserOutput() ðp¢žÉ QT ðM·é
        if (response(return_code, "QT\n", qt_expected_response)) {
          laser_state_ = LaserOff;
 @@ -139,7 +139,7 @@ struct ScipHandler::pImpl
  
        } else if (return_code == Scip11Response) {
-         // SCIP1.1 �v���g�R���̏ꍇ�̂݁ASCIP2.0 �𑗐M����
+         // SCIP1.1 vgRÌêÌÝASCIP2.0 ðM·é
 -        char scip20_expected_response[] = { 0, -1 };
 +        char scip20_expected_response[] = { 0, (char)-1 };
          if (! response(return_code, "SCIP2.0\n", scip20_expected_response)) {
@@ -28,7 +28,7 @@ Signed-off-by: Samuel Martin <s.martin49@gmail.com>
 @@ -150,7 +150,7 @@ struct ScipHandler::pImpl
  
        } else if (return_code == 0xE) {
-         // TM ���[�h�Ƃ݂Ȃ��ATM2 �𔭍s����
+         // TM [hÆÝÈµATM2 ð­s·é
 -        char tm2_expected_response[] = { 0, -1 };
 +        char tm2_expected_response[] = { 0, (char)-1 };
          if (response(return_code, "TM2\n", tm2_expected_response)) {
@@ -37,7 +37,7 @@ Signed-off-by: Samuel Martin <s.martin49@gmail.com>
 @@ -202,7 +202,7 @@ struct ScipHandler::pImpl
      snprintf(send_buffer, 10, "SS%06ld\n", baudrate);
      int return_code = -1;
-     // !!! ���ɐݒ�Ώۂ̃{�[���[�g�A�̏ꍇ�̖߂�l�� ss_expected... �ɒǉ�����
+     // !!! ùÉÝèÎÛÌ{[[gAÌêÌßèlð ss_expected... ÉÇÁ·é
 -    char ss_expected_response[] = { 0, 0x3, 0x4, 0xf, -1 };
 +    char ss_expected_response[] = { 0, 0x3, 0x4, 0xf, (char)-1 };
      if (! response(return_code, send_buffer, ss_expected_response)) {
@@ -45,7 +45,7 @@ Signed-off-by: Samuel Martin <s.martin49@gmail.com>
        return false;
 @@ -216,7 +216,7 @@ struct ScipHandler::pImpl
    {
-     // PP �̑��M�ƃf�[�^�̎�M
+     // PP ÌMÆf[^ÌóM
      int return_code = -1;
 -    char pp_expected_response[] = { 0, -1 };
 +    char pp_expected_response[] = { 0, (char)-1 };
@@ -63,7 +63,7 @@ Signed-off-by: Samuel Martin <s.martin49@gmail.com>
          return false;
 @@ -369,7 +369,7 @@ struct ScipHandler::pImpl
        if (! mx_capturing_) {
-         // �������邽�߂� QT �ł́A������҂ׂ�
+         // Á·éœßÌ QT ÅÍAðÒÂ×«
          int return_code = -1;
 -        char qt_expected_response[] = { 0, -1 };
 +        char qt_expected_response[] = { 0, (char)-1 };
@@ -81,7 +81,7 @@ Signed-off-by: Samuel Martin <s.martin49@gmail.com>
    }
 @@ -792,7 +792,7 @@ bool ScipHandler::setRawTimestampMode(bo
  
-   // TM0 or TM2 �̑��M
+   // TM0 or TM2 ÌM
    int return_code = -1;
 -  char expected_response[] = { 0, -1 };
 +  char expected_response[] = { 0, (char)-1 };
@@ -90,7 +90,7 @@ Signed-off-by: Samuel Martin <s.martin49@gmail.com>
      return false;
 @@ -809,7 +809,7 @@ bool ScipHandler::rawTimestamp(int* time
  {
-   // TM1 �̒l��Ԃ�
+   // TM1 ÌlðÔ·
    int return_code = -1;
 -  char expected_response[] = { 0, -1 };
 +  char expected_response[] = { 0, (char)-1 };
