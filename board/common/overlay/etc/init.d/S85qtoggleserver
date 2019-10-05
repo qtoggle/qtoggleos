@@ -21,7 +21,7 @@ PORT=$(cat ${CONF} | jq -r '{port: .server.port} | values[] // 8888')
 
 
 responsive() {
-    curl -m 2 --head http://127.0.0.1:${PORT}frontend/static/qtoggleserver-bundle-dark.css &>/dev/null && return 0 || return 1
+    curl -m 2 --head http://127.0.0.1:${PORT}/frontend/static/qtoggleserver-bundle-dark.css &>/dev/null && return 0 || return 1
 }
 
 watch() {
