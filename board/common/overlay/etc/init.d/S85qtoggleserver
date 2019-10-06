@@ -36,8 +36,9 @@ watch() {
             if [ $count -lt ${WATCH_TIMEOUT} ]; then
                 count=$(($count + ${WATCH_INTERVAL}))
             else
-                logger -t qtoggleserver -s "not responding for ${WATCH_TIMEOUT} seconds, rebooting"
-                reboot
+                logger -t qtoggleserver -s "not responding for ${WATCH_TIMEOUT} seconds, calling panic action"
+                panic_action qtoggleserver
+                break
             fi
         fi
     done
@@ -58,8 +59,7 @@ start() {
 
         if [ $count -gt ${WATCH_TIMEOUT} ]; then
             msg_fail
-            reboot
-            return 1
+s            return 1
         fi
 
         count=$((count + 1))
