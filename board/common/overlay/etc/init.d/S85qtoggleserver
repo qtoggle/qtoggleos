@@ -1,8 +1,8 @@
 #!/bin/bash
 
-SYS_CONF="/etc/qtoggleserver.json"
-BOOT_CONF="/boot/qtoggleserver.json"
-CONF="/data/etc/qtoggleserver.json"
+SYS_CONF="/etc/qtoggleserver.conf"
+BOOT_CONF="/boot/qtoggleserver.conf"
+CONF="/data/etc/qtoggleserver.conf"
 LOG="/var/log/qtoggleserver.log"
 
 PROG="/usr/bin/qtoggleserver"
@@ -44,7 +44,7 @@ watch() {
 start() {
     msg_begin "Starting qtoggleserver"
 
-    ${PROG} -s ${CONF} &>> ${LOG} &
+    ${PROG} -c ${CONF} &>> ${LOG} &
 
     count=0
     while true; do
