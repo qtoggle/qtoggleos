@@ -1,8 +1,8 @@
 #!/bin/bash
 
-SYS_CONF="/etc/qtoggleserver.json"
-BOOT_CONF="/boot/qtoggleserver.json"
-CONF="/data/etc/qtoggleserver.json"
+SYS_CONF="/etc/qtoggleserver.conf"
+BOOT_CONF="/boot/qtoggleserver.conf"
+CONF="/data/etc/qtoggleserver.conf"
 LOG="/var/log/qtoggleserver.log"
 
 PROG="/usr/bin/qtoggleserver"
@@ -17,7 +17,9 @@ prepare_conf ${CONF} ${SYS_CONF} ${BOOT_CONF}
 test -f ${CONF} || exit 0
 
 
-PORT=$(cat ${CONF} | jq -r '{port: .server.port} | values[] // 8888')
+PORT=80
+PORT_RE="server[[:space:]]*=[[:space:]]\{[^\}p]*port[[:space:]]*=[[:space:]]([0-9]+)"
+[[ $(cat ${CONF}) =~ ${PORT_RE} ]] && PORT=${BASH_REMATCH[1]}
 
 
 responsive() {
@@ -34,8 +36,9 @@ watch() {
             if [ $count -lt ${WATCH_TIMEOUT} ]; then
                 count=$(($count + ${WATCH_INTERVAL}))
             else
-                logger -t qtoggleserver -s "not responding for ${WATCH_TIMEOUT} seconds, rebooting"
-                reboot
+                logger -t qtoggleserver -s "not responding for ${WATCH_TIMEOUT} seconds, calling panic action"
+                panic_action qtoggleserver
+                break
             fi
         fi
     done
@@ -44,7 +47,7 @@ watch() {
 start() {
     msg_begin "Starting qtoggleserver"
 
-    ${PROG} -s ${CONF} &>> ${LOG} &
+    ${PROG} -c ${CONF} &>> ${LOG} &
 
     count=0
     while true; do
@@ -56,8 +59,7 @@ start() {
 
         if [ $count -gt ${WATCH_TIMEOUT} ]; then
             msg_fail
-            reboot
-            return 1
+s            return 1
         fi
 
         count=$((count + 1))
@@ -97,4 +99,3 @@ case "$1" in
 esac
 
 exit $?
-
