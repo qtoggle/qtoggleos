@@ -59,7 +59,7 @@ start() {
 
         if [ $count -gt ${WATCH_TIMEOUT} ]; then
             msg_fail
-s            return 1
+            return 1
         fi
 
         count=$((count + 1))
