@@ -1,0 +1,53 @@
+#!/bin/bash
+
+WPA_SUPPLICANT_CONF="/data/etc/wpa_supplicant.conf"
+
+if [[ "$1" == "set" ]]; then
+    if [[ -n "${QS_SSID}" ]]; then
+        if grep -E '^ *ssid=' ${WPA_SUPPLICANT_CONF} &>/dev/null; then
+            sed -ri "s/^( *ssid=)\".*\"/\1\"${QS_SSID}\"/" ${WPA_SUPPLICANT_CONF}
+        else
+            sed -ri "s/^(network=\{)/\1\n    ssid=\"${QS_SSID}\"/" ${WPA_SUPPLICANT_CONF}
+        fi
+    else
+        cat ${WPA_SUPPLICANT_CONF} | grep -vE '^ *ssid=' > ${WPA_SUPPLICANT_CONF}.tmp
+        mv ${WPA_SUPPLICANT_CONF}.tmp ${WPA_SUPPLICANT_CONF}
+    fi
+    
+    if [[ -n "${QS_BSSID}" ]]; then
+        if grep -E '^ *bssid=' ${WPA_SUPPLICANT_CONF} &>/dev/null; then
+            sed -ri "s/^( *bssid=).*/\1${QS_BSSID}/" ${WPA_SUPPLICANT_CONF}
+        else
+            sed -ri "s/^( *)(ssid=.*)/\1\2\n\1bssid=${QS_BSSID}/" ${WPA_SUPPLICANT_CONF}
+        fi
+    else
+        cat ${WPA_SUPPLICANT_CONF} | grep -vE '^ *bssid=' > ${WPA_SUPPLICANT_CONF}.tmp
+        mv ${WPA_SUPPLICANT_CONF}.tmp ${WPA_SUPPLICANT_CONF}
+    fi
+    
+    if [[ -n "${QS_PSK}" ]]; then
+        if grep -E '^ *psk=' ${WPA_SUPPLICANT_CONF} &>/dev/null; then
+            sed -ri "s/^( *psk=)\".*\"/\1\"${QS_PSK}\"/" ${WPA_SUPPLICANT_CONF}
+        else
+            sed -ri "s/^( *)(ssid=.*)/\1\2\n\1psk=\"${QS_PSK}\"/" ${WPA_SUPPLICANT_CONF}
+        fi
+
+        cat ${WPA_SUPPLICANT_CONF} | grep -v 'key_mgmt=NONE' > ${WPA_SUPPLICANT_CONF}.tmp
+        mv ${WPA_SUPPLICANT_CONF}.tmp ${WPA_SUPPLICANT_CONF}
+    else
+        if ! grep 'key_mgmt=NONE' ${WPA_SUPPLICANT_CONF} &>/dev/null; then
+            sed -ri "s/^( *)(ssid=.*)/\1\2\n\1key_mgmt=NONE/" ${WPA_SUPPLICANT_CONF}
+        fi
+
+        cat ${WPA_SUPPLICANT_CONF} | grep -vE '^ *psk=' > ${WPA_SUPPLICANT_CONF}.tmp
+        mv ${WPA_SUPPLICANT_CONF}.tmp ${WPA_SUPPLICANT_CONF}
+    fi
+elif [[ "$1" == "get" ]]; then
+    ssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *ssid=' | cut -d '=' -f 2)
+    psk=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *psk=' | cut -d '=' -f 2)
+    bssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *bssid=' | cut -d '=' -f 2)
+    
+    echo "QS_SSID=${ssid}"
+    echo "QS_PSK=${psk}"
+    echo "QS_BSSID=${bssid}"
+fi

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [[ "$1" == "set" ]]; then
+    test -n "$QS_NAME" || exit 0
+    echo "$QS_NAME" > /data/etc/hostname
+    /bin/hostname $QS_NAME
+    echo "127.0.0.1 localhost $QS_NAME" > /etc/hosts
+fi

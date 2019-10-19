@@ -1,0 +1,22 @@
+#!/bin/bash
+
+STATIC_IP_CONF="/data/etc/static_ip.conf"
+
+if [[ "$1" == "set" ]]; then
+    if [[ -n "${QS_IP}" ]]; then
+        echo "STATIC_IP=${QS_IP}/${QS_MASK}" > ${STATIC_IP_CONF}
+        echo "STATIC_GW=${QS_GW}" >> ${STATIC_IP_CONF}
+        echo "STATIC_DNS=${QS_DNS}" >> ${STATIC_IP_CONF}
+    else
+        echo -n > ${STATIC_IP_CONF}
+    fi
+elif [[ "$1" == "get" ]]; then
+    source ${STATIC_IP_CONF}
+    IFS="/"
+    STATIC_IP=(${STATIC_IP})
+    echo "QS_IP=${STATIC_IP[0]}"
+    echo "QS_MASK=${STATIC_IP[1]}"
+    echo "QS_GW=${STATIC_GW}"
+    echo "QS_DNS=${STATIC_DNS}"
+    IFS=
+fi
