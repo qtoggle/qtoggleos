@@ -7,6 +7,9 @@ LOG="/var/log/qtoggleserver.log"
 
 PROG="/usr/bin/qtoggleserver"
 
+SYS_DRIVERS="/usr/lib/qtoggleserver-drivers"
+USER_DRIVERS="/data/qtoggleserver-drivers"
+
 WATCH_TIMEOUT=60
 WATCH_INTERVAL=10
 
@@ -46,6 +49,9 @@ watch() {
 
 start() {
     msg_begin "Starting qtoggleserver"
+
+    export PYTHONPATH=${PYTHONPATH}:${SYS_DRIVERS}/fwupdate:${SYS_DRIVERS}/persist:${SYS_DRIVERS}/ports
+    export PYTHONPATH=${PYTHONPATH}:${USER_DRIVERS}/fwupdate:${USER_DRIVERS}/persist:${USER_DRIVERS}/ports
 
     ${PROG} -c ${CONF} &>> ${LOG} &
 
