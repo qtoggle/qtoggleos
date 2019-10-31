@@ -21,12 +21,15 @@ test -f ${CONF} || exit 0
 
 
 PORT=80
-PORT_RE="server[[:space:]]*=[[:space:]]\{[^\}p]*port[[:space:]]*=[[:space:]]([0-9]+)"
-[[ $(cat ${CONF}) =~ ${PORT_RE} ]] && PORT=${BASH_REMATCH[1]}
+SCHEME="http"
+PORT_RE="server[[:space:]]*=[[:space:]]*\{[^#\}p]*port[[:space:]]*=[[:space:]]*([0-9]+)"
+CERT_RE="server[[:space:]]*=[[:space:]]*\{[^#\}h]*https[[:space:]]*=[[:space:]]*\{[^#\}c]*cert_file[[:space:]]*=[[:space:]]*([^#\} ]+)"
+[[ $(<${CONF}) =~ ${PORT_RE} ]] && PORT=${BASH_REMATCH[1]}
+[[ $(<${CONF}) =~ ${CERT_RE} ]] && SCHEME="https"
 
 
 responsive() {
-    curl -m 2 --head http://127.0.0.1:${PORT}/frontend/static/qtoggleserver-bundle-dark.css &>/dev/null && return 0 || return 1
+    curl -m 2 --insecure --head "${SCHEME}://127.0.0.1:${PORT}/frontend/static/qtoggleserver-bundle-dark.css" &>/dev/null && return 0 || return 1
 }
 
 watch() {
@@ -36,7 +39,7 @@ watch() {
         if responsive; then
             count=0
         else
-            if [ $count -lt ${WATCH_TIMEOUT} ]; then
+            if [[ $count -lt ${WATCH_TIMEOUT} ]]; then
                 count=$(($count + ${WATCH_INTERVAL}))
             else
                 logger -t qtoggleserver -s "not responding for ${WATCH_TIMEOUT} seconds, calling panic action"
@@ -63,7 +66,7 @@ start() {
             break
         fi
 
-        if [ $count -gt ${WATCH_TIMEOUT} ]; then
+        if [[ $count -gt ${WATCH_TIMEOUT} ]]; then
             msg_fail
             return 1
         fi
