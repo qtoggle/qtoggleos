@@ -23,7 +23,7 @@ test -f ${CONF} || exit 0
 PORT=80
 SCHEME="http"
 PORT_RE="server[[:space:]]*=[[:space:]]*\{[^#\}p]*port[[:space:]]*=[[:space:]]*([0-9]+)"
-CERT_RE="server[[:space:]]*=[[:space:]]*\{[^#\}h]*https[[:space:]]*=[[:space:]]*\{[^#\}c]*cert_file[[:space:]]*=[[:space:]]*([^#\} ]+)"
+CERT_RE="https[[:space:]]*=[[:space:]]*\{[^#\}c]*cert_file[[:space:]]*=[[:space:]]*([^#\} ]+)"
 [[ $(<${CONF}) =~ ${PORT_RE} ]] && PORT=${BASH_REMATCH[1]}
 [[ $(<${CONF}) =~ ${CERT_RE} ]] && SCHEME="https"
 
