@@ -81,12 +81,19 @@ class ThingOSDriver(fwupdate.BaseDriver):
         return output.strip().decode()
 
     async def _wait_idle(self):
-        for _ in range(50):  # wait at most 5 seconds
+        # Wait 5 seconds for verification and download start
+        await asyncio.sleep(2)
+        
+        # Wait at most another 3 seconds for status to become non-idle
+        for _ in range(3):
             output = await self._call_fwupdate(['status'])
+            if output.startswith('error:'):
+                raise FWUpdateCommandError(output[6:].strip())
+
             if output != 'idle':
                 break
 
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(1)
 
         else:
             raise FWUpdateCommandError('timeout waiting for update to begin')
