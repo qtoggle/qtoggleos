@@ -1,0 +1,9 @@
+# Activate tab completion
+try:
+    import rlcompleter, readline
+
+except ImportError:
+    pass
+
+else:
+    readline.parse_and_bind('tab:complete')
