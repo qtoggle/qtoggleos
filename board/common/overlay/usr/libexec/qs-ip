@@ -11,7 +11,7 @@ if [[ "$1" == "set" ]]; then
         echo -n > ${STATIC_IP_CONF}
     fi
 elif [[ "$1" == "get" ]]; then
-    source ${STATIC_IP_CONF}
+    test -f ${STATIC_IP_CONF} && source ${STATIC_IP_CONF}
     IFS="/"
     STATIC_IP=(${STATIC_IP})
     echo "QS_IP=${STATIC_IP[0]}"

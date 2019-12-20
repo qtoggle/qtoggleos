@@ -43,9 +43,11 @@ if [[ "$1" == "set" ]]; then
         mv ${WPA_SUPPLICANT_CONF}.tmp ${WPA_SUPPLICANT_CONF}
     fi
 elif [[ "$1" == "get" ]]; then
-    ssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *ssid=' | cut -d '=' -f 2)
-    psk=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *psk=' | cut -d '=' -f 2)
-    bssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *bssid=' | cut -d '=' -f 2)
+    if [[ -f /data/etc/wpa_supplicant.conf ]]; then
+        ssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *ssid=' | cut -d '=' -f 2)
+        psk=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *psk=' | cut -d '=' -f 2)
+        bssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *bssid=' | cut -d '=' -f 2)
+    fi
     
     echo "QS_SSID=${ssid}"
     echo "QS_PSK=${psk}"
