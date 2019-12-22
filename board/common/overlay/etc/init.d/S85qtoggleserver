@@ -81,10 +81,25 @@ start() {
 
 stop() {
     msg_begin "Stopping qtoggleserver"
-    killall -q $(basename ${PROG})
-    test $? == 0 && msg_done || msg_fail
     
-    sleep 1
+    base_prog=$(basename ${PROG})
+    if killall -q ${base_prog}; then
+        # Allow up to 5 seconds for a graceful shutdown
+        for ((i = 0; i < 5; i++)); do
+            if ! killall -q -0 ${base_prog}; then
+                msg_done
+                break
+            fi
+            sleep 1
+        done
+        if [[ ${i} == 5 ]]; then
+            killall -q -9 ${base_prog}
+            msg_fail "killed"
+        fi
+    else
+        msg_fail
+    fi
+    
     ps | grep $(basename $0) | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
 }
 
