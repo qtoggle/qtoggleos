@@ -51,3 +51,6 @@ fi
 if ! grep -E '^admin:' ${TARGET}/etc/passwd &> /dev/null; then
     echo "admin:x:0:0:root:/root:/bin/sh" >> ${TARGET}/etc/passwd
 fi
+
+# make sure "qtoggleserver" namespace is never touched by packages
+sed -ri 's/^qtoggleserver$//g' ${TARGET}/usr/lib/python*/site-packages/*.egg-info/top_level.txt
