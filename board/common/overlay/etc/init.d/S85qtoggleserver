@@ -100,7 +100,7 @@ stop() {
         msg_fail
     fi
     
-    ps | grep $(basename $0) | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+    ps | grep $(basename ${BASH_SOURCE}) | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
 }
 
 case "$1" in
