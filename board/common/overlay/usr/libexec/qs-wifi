@@ -2,6 +2,9 @@
 
 WPA_SUPPLICANT_CONF="/data/etc/wpa_supplicant.conf"
 
+source /etc/init.d/os_conf  # Needed for OS_WLAN
+
+
 if [[ "$1" == "set" ]]; then
     if [[ -n "${QS_SSID}" ]]; then
         if grep -E '^ *ssid=' ${WPA_SUPPLICANT_CONF} &>/dev/null; then
@@ -47,9 +50,13 @@ elif [[ "$1" == "get" ]]; then
         ssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *ssid=' | cut -d '=' -f 2)
         psk=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *psk=' | cut -d '=' -f 2)
         bssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *bssid=' | cut -d '=' -f 2)
+        bssid_current=$(iw dev ${OS_WLAN} link | grep -oE 'Connected to [^ ]+' | cut -d ' ' -f 3)
+        rssi_current=$(iw dev wlan0 link | grep -E "signal: -[[:digit:]]+" | cut -d ' ' -f 2)
     fi
     
     echo "QS_SSID=${ssid}"
     echo "QS_PSK=${psk}"
     echo "QS_BSSID=${bssid}"
+    echo "QS_BSSID_CURRENT=${bssid_current}"
+    echo "QS_RSSI_CURRENT=${rssi_current}"
 fi

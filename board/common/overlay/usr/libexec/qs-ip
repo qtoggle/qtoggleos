@@ -3,20 +3,35 @@
 STATIC_IP_CONF="/data/etc/static_ip.conf"
 
 if [[ "$1" == "set" ]]; then
-    if [[ -n "${QS_IP}" ]]; then
-        echo "STATIC_IP=${QS_IP}/${QS_MASK}" > ${STATIC_IP_CONF}
-        echo "STATIC_GW=${QS_GW}" >> ${STATIC_IP_CONF}
+    if [[ -n "${QS_ADDRESS}" ]] && [[ -n "${QS_NETMASK}" ]] && [[ -n "${QS_GATEWAY}" ]] && [[ -n "${QS_DNS}" ]]; then
+        echo "STATIC_IP=${QS_ADDRESS}/${QS_NETMASK}" > ${STATIC_IP_CONF}
+        echo "STATIC_GW=${QS_GATEWAY}" >> ${STATIC_IP_CONF}
         echo "STATIC_DNS=${QS_DNS}" >> ${STATIC_IP_CONF}
     else
         echo -n > ${STATIC_IP_CONF}
     fi
 elif [[ "$1" == "get" ]]; then
     test -f ${STATIC_IP_CONF} && source ${STATIC_IP_CONF}
-    IFS="/"
-    STATIC_IP=(${STATIC_IP})
-    echo "QS_IP=${STATIC_IP[0]}"
-    echo "QS_MASK=${STATIC_IP[1]}"
-    echo "QS_GW=${STATIC_GW}"
+    _IFS=${IFS} IFS="/" STATIC_IP=(${STATIC_IP}) IFS=${_IFS}
+    echo "QS_ADDRESS=${STATIC_IP[0]}"
+    echo "QS_NETMASK=${STATIC_IP[1]}"
+    echo "QS_GATEWAY=${STATIC_GW}"
     echo "QS_DNS=${STATIC_DNS}"
-    IFS=
+    
+    # Obtain current IP info
+    gw_if=$(ip route list | grep default | cut -d ' ' -f 3,5)
+    if [[ -n "${gw_if}" ]]; then
+        gw_if=(${gw_if})
+        addr_mask=$(ip addr show dev ${gw_if[1]} | grep 'inet ' | tr -s ' ' | cut -d ' ' -f 3)
+        _IFS=${IFS} IFS="/" addr_mask=(${addr_mask}) IFS=${_IFS}
+        address_current=${addr_mask[0]}
+        netmask_current=${addr_mask[1]}
+        gateway_current=${gw_if[0]}
+        dns_current=$(cat /etc/resolv.conf | grep nameserver | head -1 | cut -d ' ' -f 2)
+    fi
+
+    echo "QS_ADDRESS_CURRENT=${address_current}"
+    echo "QS_NETMASK_CURRENT=${netmask_current}"
+    echo "QS_GATEWAY_CURRENT=${gateway_current}"
+    echo "QS_DNS_CURRENT=${dns_current}"
 fi
