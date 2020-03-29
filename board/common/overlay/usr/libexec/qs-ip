@@ -3,12 +3,16 @@
 STATIC_IP_CONF="/data/etc/static_ip.conf"
 
 if [[ "$1" == "set" ]]; then
-    if [[ -n "${QS_ADDRESS}" ]] && [[ -n "${QS_NETMASK}" ]] && [[ -n "${QS_GATEWAY}" ]] && [[ -n "${QS_DNS}" ]]; then
+    echo -n > ${STATIC_IP_CONF}
+    
+    if [[ -n "${QS_ADDRESS}" ]] && [[ -n "${QS_NETMASK}" ]]; then
         echo "STATIC_IP=${QS_ADDRESS}/${QS_NETMASK}" > ${STATIC_IP_CONF}
+    fi
+    if [[ -n "${QS_GATEWAY}" ]]; then
         echo "STATIC_GW=${QS_GATEWAY}" >> ${STATIC_IP_CONF}
+    fi
+    if [[ -n "${QS_DNS}" ]]; then
         echo "STATIC_DNS=${QS_DNS}" >> ${STATIC_IP_CONF}
-    else
-        echo -n > ${STATIC_IP_CONF}
     fi
 elif [[ "$1" == "get" ]]; then
     test -f ${STATIC_IP_CONF} && source ${STATIC_IP_CONF}
