@@ -100,7 +100,8 @@ stop() {
         msg_fail
     fi
     
-    ps | grep qtoggleserver | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+    # Kill any remainings of qtoggleserver processes with SIGKILL
+    ps | grep qtoggleserver | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill -9
 }
 
 case "$1" in
