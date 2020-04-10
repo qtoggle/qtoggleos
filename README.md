@@ -1,1 +1,3 @@
-**qToggleOS** is an OS based on [thingOS](https://github.com/ccrisan/thingos), especially built for the [qToggleServer](https://github.com/qtoggle/qtoggleserver).
+**qToggleOS** is a lightweight OS that transforms a Raspberry Pi board into a [qToggle](https://github.com/qtoggle/docs) device.
+
+Check out the [Installation](https://github.com/qtoggle/qtoggleos/wiki/Installation) instructions to get started.
