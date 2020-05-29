@@ -2,12 +2,9 @@
 
 # qtoggleserver.conf: add slaves.discover
 discover_section='    discover = { \
-        enabled = true \
         dhcp_timeout = 10 \
         ap = { \
-            interface = "ap0" \
-            target_ssid = null \
-            target_psk = null \
+            interface_cmd = "/usr/libexec/qs-ap-interface" \
             finish_timeout = 300 \
         } \
     }'
