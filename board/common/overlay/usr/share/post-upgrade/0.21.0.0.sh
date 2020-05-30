@@ -9,4 +9,4 @@ discover_section='    discover = { \
         } \
     }'
 
-sed -ri "s/(\s+retry_count = .*)/\1\n${discover_section}/g" /data/etc/qtoggleserver.conf
+sed -ri "s,(\s+retry_count = .*),\1\n${discover_section},g" /data/etc/qtoggleserver.conf
