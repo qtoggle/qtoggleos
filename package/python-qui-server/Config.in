@@ -1,0 +1,7 @@
+config BR2_PACKAGE_PYTHON_QUI_SERVER
+	bool "python-qui-server"
+	depends on BR2_PACKAGE_PYTHON3
+	help
+	  Server package for QUI.
+
+	  https://github.com/qtoggle/qui
