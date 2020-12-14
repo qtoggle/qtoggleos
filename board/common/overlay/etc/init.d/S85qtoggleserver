@@ -22,11 +22,15 @@ test -f ${CONF} || exit 0
 
 PORT=80
 SCHEME="http"
+DB_NAME="qtoggleserver"
+
 PORT_RE="server[[:space:]]*=?[[:space:]]*\{[^#\}p]*port[[:space:]]*=[[:space:]]*([0-9]+)"
 CERT_RE="https[[:space:]]*=?[[:space:]]*\{[^#\}c]*cert_file[[:space:]]*=[[:space:]]*([^#\} ]+)"
+PERSIST_DRIVER_RE="persist[[:space:]]*=?[[:space:]]*\{[^#\}d]*driver[[:space:]]*=[[:space:]]*\"?([a-zA-Z0-9.]+)\"?"
+
 [[ $(<${CONF}) =~ ${PORT_RE} ]] && PORT=${BASH_REMATCH[1]}
 [[ $(<${CONF}) =~ ${CERT_RE} ]] && SCHEME="https"
-
+[[ $(<${CONF}) =~ ${PERSIST_DRIVER_RE} ]] && PERSIST_DRIVER=${BASH_REMATCH[1]}
 
 responsive() {
     curl -m 2 --insecure --head "${SCHEME}://127.0.0.1:${PORT}/frontend/static/qtoggleserver-bundle-dark.css" &>/dev/null && return 0 || return 1
@@ -50,7 +54,19 @@ watch() {
     done
 }
 
+setup_persist() {
+    if [[ "${PERSIST_DRIVER}" =~ PostgreSQLDriver$ ]]; then
+        if ! psql -U postgres -Altw | grep -q ${DB_NAME}; then
+            msg_begin "Creating postgresql ${DB_NAME} db"
+            psql -U postgres -Atwq -c "CREATE DATABASE ${DB_NAME}"
+            test $? == 0 && msg_done || msg_fail
+        fi
+    fi
+}
+
 start() {
+    setup_persist
+
     msg_begin "Starting qtoggleserver"
 
     export PYTHONPATH=${PYTHONPATH}:${SYS_DRIVERS}/fwupdate:${SYS_DRIVERS}/persist:${SYS_DRIVERS}/ports
