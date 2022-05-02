@@ -1,1 +1,1 @@
-/lib/firmware/ap6212/nvram.txt
+/lib/firmware/ap6212/nvram_ap6212.txt
