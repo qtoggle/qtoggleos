@@ -54,7 +54,3 @@ fi
 
 # make sure "qtoggleserver" namespace is never touched by packages
 sed -ri 's/^qtoggleserver$//g' ${TARGET}/usr/lib/python*/site-packages/*.egg-info/top_level.txt
-
-# copy uncompiled Python source required by pip
-cp ${BUILD_DIR}/python-pip-*/src/pip/_vendor/pep517/_in_process.py \
-   ${TARGET}/usr/lib/python*/site-packages/pip/_vendor/pep517
