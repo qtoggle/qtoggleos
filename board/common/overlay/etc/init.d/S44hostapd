@@ -1,0 +1,156 @@
+#!/bin/bash
+
+SYS_CONF="/etc/hostapd.conf"
+BOOT_CONF="/boot/hostapd.conf"
+CONF="/data/etc/hostapd.conf"
+
+SYS_CP_CONF="/etc/captive-portal.conf"
+BOOT_CP_CONF="/boot/captive-portal.conf"
+CP_CONF="/data/etc/captive-portal.conf"
+
+LOG="/var/log/hostapd.log"
+PROG="/usr/sbin/hostapd"
+
+
+test -x ${PROG} || exit 0
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+prepare_conf ${CONF} ${SYS_CONF} ${BOOT_CONF}
+
+test -s ${SYS_CP_CONF} && source ${SYS_CP_CONF}
+test -s ${BOOT_CP_CONF} && source ${BOOT_CP_CONF}
+test -s ${CP_CONF} && source ${CP_CONF}
+
+
+function running() {
+    killall -0 $(basename ${PROG}) &> /dev/null
+}
+
+function watch_configured() {
+    while true; do
+        sleep ${CAPTIVE_PORTAL_CONFIGURED_INTERVAL}
+        if ! running && ! ${CAPTIVE_PORTAL_CONFIGURED_CMD} &>/dev/null; then
+            logger -t hostapd "not configured, starting captive portal"
+            start_hostapd &>/dev/null
+        elif running && ${CAPTIVE_PORTAL_CONFIGURED_CMD} &>/dev/null; then
+            logger -t hostapd "configured, stopping captive portal"
+            stop_hostapd &>/dev/null
+        fi
+    done
+}
+
+function start_hostapd() {
+    rfkill unblock wlan &>/dev/null
+
+    msg_begin "Preparing AP interfaces"
+
+    # wait up to 5 seconds for interface
+    count=0
+    while ! ifconfig ${OS_WLAN} >/dev/null 2>&1; do
+        sleep 1
+        count=$((${count} + 1))
+        if [[ ${count} -ge 5 ]]; then
+            msg_fail "no device"
+            return 1
+        fi
+    done
+    
+    wifi_ifaces=$(ip link | grep -oE 'wlan[[:digit:]]')
+    ap_ifaces=""
+    for iface in ${wifi_ifaces}; do
+        ip link set ${iface} up
+        ap_iface=ap${iface: -1}
+        if iw dev ${iface} interface add ${ap_iface} type __ap &>/dev/null; then
+            ap_ifaces+="${ap_iface} "
+        fi
+    done
+    msg_done "${ap_ifaces:-none}"
+
+    msg_begin "Starting hostapd"
+    run_conf=/var/run/hostapd.conf
+    cp ${CONF} ${run_conf}
+    
+    # Replace placeholders
+    hostname=$(hostname)
+    sed -ri "s/^ssid=(.*)%h(.*)$/ssid=\1${hostname}\2/" ${run_conf}
+    sed -ri "s/^interface=%i$/interface=${OS_AP}/" ${run_conf}
+
+    # Determine Wi-Fi driver
+    iface=$(cat ${run_conf} | grep interface | cut -d '=' -f 2)
+    module=$(basename $(readlink /sys/class/net/${iface}/device/driver/module 2>/dev/null) 2>/dev/null)
+
+    iwconfig ${iface} power off &> /dev/null
+    iw ${iface} set power_save off &> /dev/null
+    ${PROG} ${run_conf} &> ${LOG} &
+
+    test -n "${module}" && msg_done "done (${module})"|| msg_done
+}
+
+function stop_hostapd() {
+    msg_begin "Stopping hostpad"
+    killall $(basename ${PROG}) &>/dev/null
+    msg_done
+}
+
+function start() {
+    if ! [[ -s ${CONF} ]]; then
+        return
+    fi
+
+    if [[ "${CAPTIVE_PORTAL_ENABLED}" == true ]] && \
+       [[ -n "${CAPTIVE_PORTAL_CONFIGURED_CMD}" ]] && \
+       [[ -z "${CAPTIVE_PORTAL_CONFIGURED_INTERVAL}" ]] && \
+       ${CAPTIVE_PORTAL_CONFIGURED_CMD} &>/dev/null; then
+
+        msg_begin "Starting hostapd"
+        msg_done "already configured"
+        logger -t hostapd "unit is configured"
+        return
+    fi
+
+    if [[ "${CAPTIVE_PORTAL_ENABLED}" == true ]]; then
+        timeout=${CAPTIVE_PORTAL_TIMEOUT:-0}
+        if [[ -n "${CAPTIVE_PORTAL_CONFIGURED_INTERVAL}" ]]; then
+            msg_begin "Starting hostapd"
+            logger -t hostapd "configuration watch every ${CAPTIVE_PORTAL_CONFIGURED_INTERVAL}s"
+            watch_configured &
+            msg_done "watch mode"
+        elif [[ ${timeout} -gt 0 ]]; then
+            logger -t hostapd "not configured, starting"
+            start_hostapd
+            logger -t hostapd "will stop after ${timeout}s"
+            sleep ${timeout} && stop_hostapd &>/dev/null &
+        fi
+    else
+        start_hostapd
+    fi
+}
+
+function stop() {
+    if ! [[ -s ${CONF} ]]; then
+        return
+    fi
+
+    stop_hostapd
+    ps | grep $(basename ${PROG}) | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+        
+    stop)
+        stop
+        ;;
+        
+    restart)
+        stop
+        start
+        ;;
+    
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac

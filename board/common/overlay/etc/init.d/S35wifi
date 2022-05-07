@@ -8,17 +8,17 @@ LOG="/var/log/wpa_supplicant.log"
 PROG="/usr/sbin/wpa_supplicant"
 DRIVER=nl80211,wext
 
-SYS_WATCH_CONF="/etc/watch.conf"
-BOOT_WATCH_CONF="/boot/watch.conf"
-WATCH_CONF="/data/etc/watch.conf"
+NETWATCH_CONF="/etc/netwatch.conf"
+
+CONNMAN_CONF="/etc/connman/main.conf"
 
 
 test -x ${PROG} || exit 0
+test -s ${CONNMAN_CONF} && exit 0
 
 test -n "${OS_VERSION}" || source /etc/init.d/base
 
-prepare_conf ${WATCH_CONF} ${SYS_WATCH_CONF} ${BOOT_WATCH_CONF}
-source ${WATCH_CONF}
+source ${NETWATCH_CONF}
 
 prepare_conf ${CONF} ${SYS_CONF} ${BOOT_CONF}
 test -s ${CONF} || exit 0
@@ -44,8 +44,7 @@ watch() {
                 count=$((${count} + 5))
                 logger -t wifi "disconnected"
             else
-                logger -t wifi "disconnected for ${LINK_WATCH_TIMEOUT} seconds, calling panic action"
-                panic_action wifi
+                panic_action wifi "disconnected for ${LINK_WATCH_TIMEOUT} seconds"
             fi
         fi
     done
@@ -55,6 +54,8 @@ start() {
     test -n "${OS_COUNTRY}" && iw reg set ${OS_COUNTRY}
 
     msg_begin "Starting wpa_supplicant"
+
+    rfkill unblock wlan &>/dev/null
 
     # wait up to 5 seconds for interface
     count=0

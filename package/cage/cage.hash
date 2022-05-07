@@ -1,5 +1,5 @@
-# Generated locally
-sha256 2f9bc2bd3c61cddb0d3b406754c4906eabf5a5d1aade26eb361dffccff2601e3  cage-6eb693c05b5b34d4ed5ad8234a9f79a14ac8e07d.tar.gz
+# Generated locally after checking GPG signature
+sha256 dfe27fb0c7d43db72d6c82f01e2736580a0791a23ba69d7b56285d08af98ad90  cage-0.1.4.tar.gz
 
 # Hashes for license files:
 sha256 e117104073335dbaf78596fb1bedf89dda63c71f60f0b665947b2d369c77ecee  LICENSE
