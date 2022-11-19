@@ -97,9 +97,9 @@ elif [ "$target" == "mkrelease" ]; then
     for ext_dir in "$outputdir"/extensions/*/; do
         ext=$(basename "$ext_dir")
         echo "VERSION=$osversion" > "$ext_dir/metadata"
-        tar cf "$outputdir/images/$osname-ext-$ext-$board-$osversion.tar" "$ext_dir"
-        xz -6ek -T 0 "$outputdir/images/$osname-ext-$ext-$board-$osversion.tar"
-        echo "your xz extension is ready at $outputdir/images/$osname-ext-$ext-$board-$osversion.tar"
+        tar cf "$outputdir/images/$osname-ext-$ext-$board-$osversion.tar" -C "$ext_dir"/.. .
+        xz -6ek -T 0 -f "$outputdir/images/$osname-ext-$ext-$board-$osversion.tar"
+        echo "your extension is ready at $outputdir/images/$osname-ext-$ext-$board-$osversion.tar.xz"
     done
 
 elif [ "$target" == "clean-target" ]; then
