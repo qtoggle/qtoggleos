@@ -197,6 +197,7 @@ rm -f ${TARGET}/etc/init.d/S10udev
 rm -f ${TARGET}/etc/init.d/S15watchdog
 rm -f ${TARGET}/etc/init.d/S20urandom
 rm -f ${TARGET}/etc/init.d/S21rngd
+rm -f ${TARGET}/etc/init.d/S30cgroupfs
 rm -f ${TARGET}/etc/init.d/S35iptables
 rm -f ${TARGET}/etc/init.d/S40bluetooth
 rm -f ${TARGET}/etc/init.d/S45connman
@@ -213,6 +214,13 @@ rm -f ${TARGET}/etc/init.d/S80dhcp-relay
 rm -f ${TARGET}/etc/init.d/S80dhcp-server
 rm -f ${TARGET}/etc/init.d/S80dnsmasq
 rm -f ${TARGET}/etc/init.d/S91smb
+
+# docker
+rm -f ${TARGET}/usr/bin/cgroupfs-mount
+rm -f ${TARGET}/usr/bin/cgroupfs-umount
+rm -f ${TARGET}/usr/bin/containerd-shim
+rm -f ${TARGET}/usr/bin/containerd-shim-runc-v1
+rm -f ${TARGET}/usr/bin/ctr
 
 # other unwanted dirs
 rm -rf ${TARGET}/data/*
