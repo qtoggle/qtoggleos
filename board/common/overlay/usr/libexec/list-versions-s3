@@ -28,6 +28,7 @@ storage_classes=(${storage_classes})
 i=0
 for file in ${files[*]}; do
     [[ "${file}" =~ ^${path}/(.+)/(.+)$ ]] || continue
+    [[ "${file}" = *extensions* ]] && continue
     version="${BASH_REMATCH[1]}"
     fname="${BASH_REMATCH[2]}"
     prerelease=false
