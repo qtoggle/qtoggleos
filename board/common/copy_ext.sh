@@ -10,19 +10,9 @@ for file in ${COMMON_DIR}/ext-*.conf; do
     mkdir -p ${ext_dir}/root
     source ${file}
     for path in ${PATHS}; do
-        if [[ "${path}" == *:* ]]; then
-            IFS=: path=(${path}); unset IFS
-            src=${path[0]}
-            dst=${path[1]}
-        else
-            src=${path}
-            dst=${path}
-        fi
-        
-        test -e "${TARGET}${src}" || continue
-        rm -rf "${ext_dir}/root${dst}"
-
-        cp -a "${TARGET}${src}" "${ext_dir}/root${dst}"
-        rm -rf "${TARGET}${src}"
+        test -e "${TARGET}${path}" || continue
+        dir=$(dirname ${path})
+        mkdir -p ${ext_dir}/root/${dir}
+        cp -a "${TARGET}${path}" "${ext_dir}/root/${dir}" && rm -rf "${TARGET}${path}"
     done
 done
