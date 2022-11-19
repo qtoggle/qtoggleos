@@ -12,7 +12,7 @@ function start() {
     msg_begin "Starting docker engine"
     mkdir -p /var/lib/docker
     mkdir -p /var/run/docker
-    ${PROG} -H unix:///var/run/docker.sock -G root 2>&1 > ${LOG} &
+    ${PROG} -H unix:///var/run/docker.sock -G root > ${LOG} 2>&1 &
     test $? == 0 && msg_done || msg_fail
 }
 
