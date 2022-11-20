@@ -57,6 +57,7 @@ prepare_ext_overlays() {
             msg_begin "Removing ${ext} extension folder"
             rm -rf ${dir}
             msg_done
+            continue
         fi
         
         msg_begin "Preparing ${ext} extension overlays"
