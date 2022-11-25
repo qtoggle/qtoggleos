@@ -92,6 +92,15 @@ elif [ "$target" == "mkrelease" ]; then
     echo "your xz image is ready at $outputdir/images/$osname-$board-$osversion.img.xz"
 
     rm -f "$outputdir/images/$osname-$board-$osversion.img"
+    
+    # Make extension archives
+    for ext_dir in "$outputdir"/extensions/*/; do
+        ext=$(basename "$ext_dir")
+        echo "VERSION=$osversion" > "$ext_dir/metadata"
+        tar cf "$outputdir/images/$osname-ext-$ext-$board-$osversion.tar" -C "$ext_dir"/.. .
+        xz -6ek -T 0 -f "$outputdir/images/$osname-ext-$ext-$board-$osversion.tar"
+        echo "your extension is ready at $outputdir/images/$osname-ext-$ext-$board-$osversion.tar.xz"
+    done
 
 elif [ "$target" == "clean-target" ]; then
     if [ -d "$outputdir/target" ]; then

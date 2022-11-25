@@ -1,0 +1,157 @@
+#!/bin/bash
+
+EXT_DIR=/data/extensions
+BUCKET=qtoggle
+PREFIX=firmware/qtoggleos
+# Path example: firmware/qtoggleos/0.25.0.2/extensions/qtoggleos-ext-docker-raspberrypi3-0.25.0.2.tar.xz
+PATH_TEMPLATE=${PREFIX}/%s/extensions/qtoggleos-ext-%s-%s-%s.tar.xz
+BASE_URL=https://${BUCKET}.s3.amazonaws.com
+
+shopt -s nullglob
+mkdir -p ${EXT_DIR}
+source /etc/init.d/base
+
+
+function show_usage() {
+    echo "Extensions management tool."
+    echo "Usage: $0 <cmd> [params...]"
+    echo "Commands:"
+    echo "    installed"
+    echo "        lists installed extensions and their versions"
+    echo "    available"
+    echo "        lists available extensions"
+    echo "    install <extension>"
+    echo "        installs an extension"
+    echo "    uninstall <extension>"
+    echo "        uninstalls an extension"
+    echo "    update"
+    echo "        updates all outdated extensions to match current OS version"
+}
+
+function show_reboot_required() {
+    msg "Reboot is required"
+}
+
+cmd=$1
+
+test -z "${cmd}" && { show_usage; exit 1; }
+
+function installed() {
+    for file in ${EXT_DIR}/*/metadata; do
+        ext=$(basename $(dirname ${file}))
+        version=$(source ${file} && echo ${VERSION})
+        echo ${ext}: ${version}
+    done
+}
+
+function available() {
+    max_keys=1000
+    prefix=${PREFIX}/${OS_VERSION}
+    xml_result=$(curl -sfSL "${BASE_URL}?list-type=2&max_keys=${max_keys}&prefix=${prefix}")
+    filenames=$(
+        echo "${xml_result}" |
+        grep -oE '<Key>[^<]+</Key>' |
+        sed 's/<Key>\(.*\)<\/Key>/\1/' |
+        grep -E '/extensions/.+'
+    )
+    for file in ${filenames}; do
+        basename ${file} | grep "\-${BOARD_NAME}-${OS_VERSION}" | cut -d '-' -f 3
+    done
+}
+
+function install() {
+    ext=$1
+
+    msg_begin "Downloading ${ext} extension"
+    if ! available | grep -q ${ext}; then
+        msg_fail "not found"
+        exit 1
+    fi
+    if installed | grep -q ${ext}; then
+        msg_fail "already installed"
+        exit 1
+    fi
+
+    path=$(printf ${PATH_TEMPLATE} ${OS_VERSION} ${ext} ${BOARD_NAME} ${OS_VERSION})
+    url=${BASE_URL}/${path}
+    filename=$(basename ${path})
+    if ! curl -sSfL ${url} -o ${EXT_DIR}/${filename}; then
+        msg_fail
+        exit 1
+    fi
+    msg_done
+    
+    msg_begin "Extracting ${ext} extension"
+    if ! xzcat ${EXT_DIR}/${filename} | tar xC ${EXT_DIR}; then
+        msg_fail
+        exit 1
+    fi
+    rm ${EXT_DIR}/${filename}
+    msg_done
+}
+
+function uninstall() {
+    ext=$1
+
+    msg_begin "Uninstalling ${ext} extension"
+    if ! installed | grep -q ${ext}; then
+        msg_fail "not installed"
+        exit 1
+    fi
+    
+    rm -rf ${EXT_DIR}/${ext}/metadata
+    
+    msg_done
+}
+
+function update() {
+    has_update=false
+    av=$(available)
+    for file in ${EXT_DIR}/*/metadata; do
+        ext=$(basename $(dirname ${file}))
+        version=$(source ${file} && echo ${VERSION})
+        if ! echo "${av}" | grep -q ${ext}; then
+            msg "Extension ${ext} is no longer available"
+            if uninstall ${ext}; then
+                has_update=true
+            else
+                return $?
+            fi
+        elif [[ ${version} != ${OS_VERSION} ]]; then
+            msg "Will update ${ext} from ${version} to ${OS_VERSION}"
+            if uninstall ${ext} && install ${ext}; then
+                has_update=true
+            else
+                return $?
+            fi
+        fi
+    done
+    
+    test ${has_update} == true || msg "No updates"
+}
+
+case ${cmd} in
+    installed)
+        installed
+        ;;
+    available)
+        available
+        ;;
+    install)
+        test -z "$2" && { show_usage; exit 1; }
+        install "$2" && show_reboot_required
+        ;;
+    uninstall)
+        test -z "$2" && { show_usage; exit 1; }
+        uninstall "$2" && show_reboot_required
+        ;;
+    update)
+        update
+        exit_code=$?
+        test ${exit_code} == 2 && show_reboot_required || exit ${exit_code}
+        ;;
+    *)
+        show_usage
+        exit 1
+        ;;
+esac

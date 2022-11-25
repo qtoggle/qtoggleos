@@ -58,3 +58,5 @@ sed -ri 's/^qtoggleserver$//g' ${TARGET}/usr/lib/python*/site-packages/*.egg-inf
 # copy uncompiled Python source required by pip
 cp ${BUILD_DIR}/python-pip-21.2.4/src/pip/_vendor/pep517/in_process/_in_process.py \
    ${TARGET}/usr/lib/python*/site-packages/pip/_vendor/pep517/in_process
+
+${COMMON_DIR}/copy_ext.sh

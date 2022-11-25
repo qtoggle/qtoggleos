@@ -1,0 +1,49 @@
+#!/bin/bash
+
+EXT_DIR=/data/extensions
+FSTAB_OVERLAY=/tmp/fstab.overlay
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+shopt -s nullglob
+
+
+function mount_ext_overlays() {
+    ext=$1
+    msg_begin "Mounting ${ext} extension overlays"
+    for dir in ${EXT_DIR}/${ext}/root/*; do
+        test -d ${dir} || continue
+    done
+    msg_done
+}
+
+function start() {
+    for dir in ${EXT_DIR}/*; do
+        ext=$(basename ${dir})
+        if ! [[ -s ${dir}/metadata ]]; then
+            msg_begin "Removing ${ext} extension folder"
+            rm -rf ${dir}
+            msg_done
+        fi
+        
+        msg_begin "Preparing ${ext} extension overlays"
+        for dir in ${EXT_DIR}/${ext}/root/*; do
+            test -d ${dir} || continue
+            dn=$(basename ${dir})
+            line="overlay /${dn} overlay lowerdir=/${dn},upperdir=${EXT_DIR}/${ext}/root/${dn},workdir=/data/.overlay-ext-${ext}-${dn} 0 0"
+            echo "${line}" >> ${FSTAB_OVERLAY}
+        done
+        msg_done
+    done
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        true
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac

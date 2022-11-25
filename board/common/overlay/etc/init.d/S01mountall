@@ -1,5 +1,7 @@
 #!/bin/bash
 
+EXT_DIR=/data/extensions
+
 test -n "${OS_VERSION}" || source /etc/init.d/base
 
 mount_fs() {
@@ -19,7 +21,15 @@ mount_overlay() {
     grep -oE 'lowerdir=[^,]+' /tmp/fstab.overlay | cut -d '=' -f 2 | xargs -r mkdir -p
     grep -oE 'upperdir=[^,]+' /tmp/fstab.overlay | cut -d '=' -f 2 | xargs -r mkdir -p
     grep -oE 'workdir=[^ ]+' /tmp/fstab.overlay | cut -d '=' -f 2 | xargs -r mkdir -p
-    /bin/mount -T /tmp/fstab.overlay -a
+    cat /tmp/fstab.overlay | grep -vE '^#' | while read line; do
+        parts=(${line})
+        test ${#parts[@]} -ge 4 || continue
+        fs=${parts[0]}
+        mp=${parts[1]}
+        type=${parts[2]}
+        opts=${parts[3]}
+        /bin/mount -t ${type} -o ${opts} ${fs} ${mp}
+    done
     test $? == 0 && msg_done || msg_fail
 }
 
@@ -40,9 +50,31 @@ mk_tty_login() {
     ln -sf ${console} /dev/ttylogin
 }
 
+prepare_ext_overlays() {
+    for dir in ${EXT_DIR}/*; do
+        ext=$(basename ${dir})
+        if ! [[ -s ${dir}/metadata ]]; then
+            msg_begin "Removing ${ext} extension folder"
+            rm -rf ${dir}
+            msg_done
+            continue
+        fi
+        
+        msg_begin "Preparing ${ext} extension overlays"
+        for dir in ${EXT_DIR}/${ext}/root/*; do
+            test -d ${dir} || continue
+            dn=$(basename ${dir})
+            line="overlay /${dn} overlay lowerdir=/${dn},upperdir=${EXT_DIR}/${ext}/root/${dn},workdir=/data/.overlay-ext-${ext}-${dn} 0 0"
+            echo "${line}" >> /tmp/fstab.overlay
+        done
+        msg_done
+    done
+}
+
 case "$1" in
     start)
         mount_fs
+        prepare_ext_overlays
         mount_overlay
 
         # we need to source conf again, now that /data is available
