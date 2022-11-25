@@ -1,0 +1,78 @@
+#!/bin/bash
+
+CONF="/etc/rport.conf"
+PROG=/usr/bin/rport
+NETWATCH_CONF="/etc/netwatch.conf"
+
+test -s ${PROG} || exit 0
+test -s ${CONF} || exit 0
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+source ${NETWATCH_CONF}
+
+running() {
+    killall -0 rport &> /dev/null
+}
+
+watch() {
+    sleep ${NET_WATCH_DELAY}
+    
+    count=0
+    NET_WATCH_RETRIES=$((${NET_WATCH_RETRIES} - 1))
+    while true; do
+        sleep ${NET_WATCH_INTERVAL}
+        if running; then
+            count=0
+        else
+            if [[ ${count} -lt ${NET_WATCH_RETRIES} ]]; then
+                logger -t rport "dead"
+                count=$((${count} + 1))
+                continue
+            else
+                panic_action rport "service dead"
+                break
+            fi
+        fi
+    done
+}
+
+start() {
+    msg_begin "Starting rport"
+    
+    id=${OS_PREFIX}-${BOARD_SN}
+    name=${id}
+    password=$(md5sum <<< ${BOARD_SN} | cut -b 1-8)
+    mkdir -p /var/lib/rport
+    RPORT_AUTH=${id}:${password} ${PROG} --id ${id} --name ${name} --config ${CONF} &>/dev/null &
+    test $? == 0 && msg_done || msg_fail
+    
+    if [[ "${LINK_WATCH}" == "true" ]]; then
+        watch &
+    fi
+}
+
+stop() {
+    msg_begin "Stopping rport"
+    killall $(basename ${PROG}) &>/dev/null
+    ps | grep $(basename ${PROG}) | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+    msg_done
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+        
+    stop)
+        stop
+        ;;
+        
+    restart)
+        stop
+        start
+        ;;
+    
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
