@@ -13,14 +13,14 @@ NETWATCH_CONF="/etc/netwatch.conf"
 
 test -s ${PROG_COMPRESSED} || exit 0
 
+test -s ${SYS_CONF} || test -s ${BOOT_CONF} || test -s ${CONF} || exit 0
+test -s ${SYS_CONF} && source ${SYS_CONF}
+test -s ${BOOT_CONF} && source ${BOOT_CONF}
+test -s ${CONF} && source ${CONF}
+
 test -n "${OS_VERSION}" || source /etc/init.d/base
 
-prepare_conf ${CONF} ${SYS_CONF} ${BOOT_CONF}
-
-test -s ${CONF} || exit 0
-
 source ${NETWATCH_CONF}
-source ${CONF}
 
 
 running() {
