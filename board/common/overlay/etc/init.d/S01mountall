@@ -51,6 +51,7 @@ mk_tty_login() {
 }
 
 prepare_ext_overlays() {
+    shopt -s nullglob
     for dir in ${EXT_DIR}/*; do
         ext=$(basename ${dir})
         if ! [[ -s ${dir}/metadata ]]; then
