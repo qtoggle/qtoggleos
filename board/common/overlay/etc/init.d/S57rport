@@ -26,7 +26,7 @@ source ${NETWATCH_CONF}
 
 running() {
     last_updated_seconds=$(expr $(date +%s) - $(jq -r .last_update_ts < ${STATE_FILE}))
-    test -lt "${last_updated_seconds}" ${STATE_UPDATE_TIMEOUT} || return 1
+    test "${last_updated_seconds}" -lt ${STATE_UPDATE_TIMEOUT} || return 1
     test "$(jq -r .last_state < ${STATE_FILE})" == connected || return 1
     killall -0 rport &> /dev/null || return 1
 }
