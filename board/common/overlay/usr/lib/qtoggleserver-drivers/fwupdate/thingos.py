@@ -18,18 +18,14 @@ class ThingOSDriver(fwupdate.BaseDriver):
         return await self._call_fwupdate(['current'])
 
     async def get_latest(self):
-        versions = await self._call_fwupdate(['versions', '-j'])
+        versions = await self._call_fwupdate(['latest'])
         if not versions:
             return '', '', ''
 
-        versions = versions.split('\n')
+        versions = versions.split()
 
-        # versions are sorted from latest to oldest
-        latest = versions[0]
-
-        info = json.loads(latest)
-
-        return info['version'], info['date'], info['url']
+        # version, date, url
+        return versions[0], versions[2], versions[1]
 
     async def get_status(self):
         s = await self._call_fwupdate(['status'])
@@ -64,11 +60,11 @@ class ThingOSDriver(fwupdate.BaseDriver):
         return status
 
     async def update_to_version(self, version):
-        asyncio.create_task(self._call_fwupdate(['upgrade', version]))
+        asyncio.create_task(self._call_fwupdate(['install', version]))
         await self._wait_idle()
 
     async def update_to_url(self, url):
-        asyncio.create_task(self._call_fwupdate(['upgrade', url]))
+        asyncio.create_task(self._call_fwupdate(['install', url]))
         await self._wait_idle()
 
     async def _call_fwupdate(self, args):
