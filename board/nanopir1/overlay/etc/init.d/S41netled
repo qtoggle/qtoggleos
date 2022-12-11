@@ -1,13 +1,46 @@
 #!/bin/bash
 
+NET_LED=LED2
+
+function turn_on() {
+    echo 1 > /sys/class/leds/${NET_LED}/brightness
+}
+
+function turn_off() {
+    echo 0 > /sys/class/leds/${NET_LED}/brightness
+}
+
+function is_hostapd_running() {
+    killall -0 hostapd &> /dev/null
+}
+
+function watch_captive_portal_mode() {
+    cp_mode=false
+    blink_on=0
+    while true; do
+        if is_hostapd_running; then
+            cp_mode=true
+            test ${blink_on} == 1 && turn_off || turn_on
+            blink_on=$(( 1- blink_on ))
+            usleep 500000
+        else
+            cp_mode=false
+            turn_on
+            sleep 1
+        fi
+    done
+}
+
+
 case "$1" in
     start)
-        echo 0 > /sys/class/leds/LED2/brightness
-        echo 1 > /sys/class/leds/LED2/brightness
+        turn_on
+        watch_captive_portal_mode &
         ;;
 
     stop)
-        true
+        ps | grep netled | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+        turn_off
         ;;
 
     *)
