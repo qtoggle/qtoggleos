@@ -1,6 +1,15 @@
 #!/bin/bash
 
 NET_LED=LED2
+QS_CONF="/data/etc/qtoggleserver.conf"
+PORT_RE="server[[:space:]]*=?[[:space:]]*\{[^#\}p]*port[[:space:]]*=[[:space:]]*([0-9]+)"
+CERT_RE="https[[:space:]]*=?[[:space:]]*\{[^#\}c]*cert_file[[:space:]]*=[[:space:]]*([^#\} ]+)"
+
+QS_PORT=80
+QS_SCHEME="http"
+[[ $(<${QS_CONF}) =~ ${PORT_RE} ]] && QS_PORT=${BASH_REMATCH[1]}
+[[ $(<${QS_CONF}) =~ ${CERT_RE} ]] && QS_SCHEME="https"
+
 
 function turn_on() {
     echo 1 > /sys/class/leds/${NET_LED}/brightness
@@ -14,11 +23,15 @@ function is_hostapd_running() {
     killall -0 hostapd &> /dev/null
 }
 
+function is_qtoggleserver_running() {
+    curl -m 2 --insecure --head "${QS_SCHEME}://127.0.0.1:${QS_PORT}/frontend/static/qtoggleserver-bundle-dark.css" &>/dev/null && return 0 || return 1
+}
+
 function watch_captive_portal_mode() {
     cp_mode=false
     blink_on=0
     while true; do
-        if is_hostapd_running; then
+        if is_hostapd_running && is_qtoggleserver_running; then
             cp_mode=true
             test ${blink_on} == 1 && turn_off || turn_on
             blink_on=$(( 1- blink_on ))
