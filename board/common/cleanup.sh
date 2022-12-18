@@ -39,7 +39,6 @@ rm -f ${TARGET}/bin/more
 rm -f ${TARGET}/bin/wdctl
 rm -f ${TARGET}/usr/sbin/readprofile
 rm -f ${TARGET}/sbin/nologin
-rm -f ${TARGET}/bin/mountpoint
 rm -f ${TARGET}/sbin/ldattach
 rm -f ${TARGET}/usr/sbin/ldattach
 rm -f ${TARGET}/sbin/slattach
