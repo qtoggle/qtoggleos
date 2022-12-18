@@ -19,6 +19,10 @@ function turn_off() {
     echo 0 > /sys/class/leds/${NET_LED}/brightness
 }
 
+function is_network_ok() {
+    ip route | grep -q default
+}
+
 function is_hostapd_running() {
     killall -0 hostapd &> /dev/null
 }
@@ -38,7 +42,7 @@ function watch_captive_portal_mode() {
             usleep 500000
         else
             cp_mode=false
-            turn_on
+            is_network_ok && turn_on || turn_off
             sleep 1
         fi
     done
@@ -47,7 +51,6 @@ function watch_captive_portal_mode() {
 
 case "$1" in
     start)
-        turn_on
         watch_captive_portal_mode &
         ;;
 
