@@ -1,9 +1,0 @@
-#!/bin/bash
-
-# If we've got a default route, we consider the network configured
-ip route | grep -q default && exit 0
-
-# If we've got a SSID configured, we consider the network configured
-cat /data/etc/wpa_supplicant.conf 2>/dev/null | grep ssid | grep -vq scan_ssid && exit 0
-
-exit 1
