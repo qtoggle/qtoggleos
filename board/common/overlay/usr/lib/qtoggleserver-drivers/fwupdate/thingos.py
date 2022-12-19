@@ -33,7 +33,7 @@ class ThingOSDriver(fwupdate.BaseDriver):
         if s == 'idle':
             status = fwupdate.STATUS_IDLE
 
-        elif re.match('^downloading$', s):
+        elif re.match('^downloading .*$', s):
             status = fwupdate.STATUS_DOWNLOADING
 
         elif re.match('^downloaded .*$', s):
@@ -72,7 +72,7 @@ class ThingOSDriver(fwupdate.BaseDriver):
         exit_code, output, error = await process.call_subprocess(args)
 
         if exit_code:
-            raise FWUpdateCommandError(error)
+            raise FWUpdateCommandError(error.decode())
 
         return output.strip().decode()
 
