@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_PYLONTECH
+	bool "python-pylontech"
+	depends on BR2_PACKAGE_PYTHON3
