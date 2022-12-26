@@ -15,5 +15,8 @@ rm -rf /data/usr/lib/python3.9/site-packages/python_slugify*
 rm -rf /data/usr/lib/python3.9/site-packages/qtoggleserver*
 rm -rf /data/usr/lib/python3.9/site-packages/requests*
 rm -rf /data/usr/lib/python3.9/site-packages/serial*
+rm -rf /data/usr/lib/python3.9/site-packages/slugify*
 rm -rf /data/usr/lib/python3.9/site-packages/text_unidecode*
 rm -rf /data/usr/lib/python3.9/site-packages/urllib3*
+
+mount -o remount /usr
