@@ -1,3 +1,4 @@
 config BR2_PACKAGE_PYTHON_PYLONTECH
 	bool "python-pylontech"
 	depends on BR2_PACKAGE_PYTHON3
+    select BR2_PACKAGE_PYTHON_CONSTRUCT
