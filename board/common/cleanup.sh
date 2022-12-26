@@ -215,8 +215,6 @@ rm -f ${TARGET}/etc/init.d/S80dnsmasq
 rm -f ${TARGET}/etc/init.d/S91smb
 
 # docker
-rm -f ${TARGET}/usr/bin/cgroupfs-mount
-rm -f ${TARGET}/usr/bin/cgroupfs-umount
 rm -f ${TARGET}/usr/bin/containerd-shim
 rm -f ${TARGET}/usr/bin/containerd-shim-runc-v1
 rm -f ${TARGET}/usr/bin/ctr
