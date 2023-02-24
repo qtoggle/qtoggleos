@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-PYTHON_QUI_SERVER_VERSION = 1.16.2
+PYTHON_QUI_SERVER_VERSION = 1.16.3
 PYTHON_QUI_SERVER_SOURCE = qui-server-$(PYTHON_QUI_SERVER_VERSION).tar.gz
 PYTHON_QUI_SERVER_SITE = https://pypi.io/packages/source/q/qui-server
 PYTHON_QUI_SERVER_SETUP_TYPE = setuptools
