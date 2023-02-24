@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-QTOGGLESERVER_PARADOX_VERSION = 1.5.0
+QTOGGLESERVER_PARADOX_VERSION = 1.5.1
 QTOGGLESERVER_PARADOX_SOURCE = qtoggleserver-paradox-$(QTOGGLESERVER_PARADOX_VERSION).tar.gz
 QTOGGLESERVER_PARADOX_SITE = https://pypi.io/packages/source/q/qtoggleserver-paradox
 QTOGGLESERVER_PARADOX_SETUP_TYPE = setuptools
