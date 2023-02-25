@@ -12,6 +12,7 @@ rm -rf /data/usr/lib/python3.9/site-packages/paradox*
 rm -rf /data/usr/lib/python3.9/site-packages/pymodbus*
 rm -rf /data/usr/lib/python3.9/site-packages/pyserial*
 rm -rf /data/usr/lib/python3.9/site-packages/python_slugify*
+rm -rf /data/usr/lib/python3.9/site-packages/*pylontech*
 rm -rf /data/usr/lib/python3.9/site-packages/qtoggleserver*
 rm -rf /data/usr/lib/python3.9/site-packages/requests*
 rm -rf /data/usr/lib/python3.9/site-packages/serial*
