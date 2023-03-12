@@ -1,0 +1,4 @@
+config BR2_PACKAGE_QTOGGLESERVER_MPPSOLAR
+	bool "qtoggleserver-mppsolar"
+	depends on BR2_PACKAGE_PYTHON3 && BR2_PACKAGE_QTOGGLESERVER
+

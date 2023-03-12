@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_TEXT_UNIDECODE
+	bool "python-text-unidecode"
+	depends on BR2_PACKAGE_PYTHON3

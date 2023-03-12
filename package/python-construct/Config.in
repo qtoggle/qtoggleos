@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_CONSTRUCT
+	bool "python-construct"
+	depends on BR2_PACKAGE_PYTHON3

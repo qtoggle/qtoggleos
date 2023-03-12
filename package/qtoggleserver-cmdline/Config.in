@@ -1,0 +1,3 @@
+config BR2_PACKAGE_QTOGGLESERVER_CMDLINE
+	bool "qtoggleserver-cmdline"
+	depends on BR2_PACKAGE_PYTHON3 && BR2_PACKAGE_QTOGGLESERVER

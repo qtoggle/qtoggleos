@@ -1,0 +1,3 @@
+config BR2_PACKAGE_PYTHON_ARGPARSE
+	bool "python-argparse"
+	depends on BR2_PACKAGE_PYTHON3
