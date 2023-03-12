@@ -67,6 +67,12 @@ class ThingOSDriver(fwupdate.BaseDriver):
         asyncio.create_task(self._call_fwupdate(['install', url]))
         await self._wait_idle()
 
+    async def is_auto_update_enabled(self) -> bool:
+        return await self._call_fwupdate(['auto']) == 'on'
+
+    async def set_auto_update_enabled(self, enabled: bool) -> None:
+        await self._call_fwupdate(['auto', ['off', 'on'][enabled])
+
     async def _call_fwupdate(self, args):
         args = [self.FWUPDATE_BIN] + args
         exit_code, output, error = await process.call_subprocess(args)
