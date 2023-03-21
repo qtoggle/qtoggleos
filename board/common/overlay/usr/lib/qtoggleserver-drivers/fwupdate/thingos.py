@@ -71,7 +71,7 @@ class ThingOSDriver(fwupdate.BaseDriver):
         return await self._call_fwupdate(['auto']) == 'on'
 
     async def set_auto_update_enabled(self, enabled: bool) -> None:
-        await self._call_fwupdate(['auto', ['off', 'on'][enabled])
+        await self._call_fwupdate(['auto', ['off', 'on'][enabled]])
 
     async def _call_fwupdate(self, args):
         args = [self.FWUPDATE_BIN] + args
