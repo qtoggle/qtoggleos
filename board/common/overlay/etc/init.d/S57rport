@@ -46,7 +46,7 @@ watch() {
                 count=$((${count} + 1))
                 continue
             else
-                panic_action rport "service dead"
+                panic action rport "service dead"
                 break
             fi
         fi

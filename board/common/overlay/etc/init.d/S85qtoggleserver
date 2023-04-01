@@ -46,8 +46,7 @@ watch() {
             if [[ $count -lt ${WATCH_TIMEOUT} ]]; then
                 count=$(($count + ${WATCH_INTERVAL}))
             else
-                logger -t qtoggleserver -s "not responding for ${WATCH_TIMEOUT} seconds, calling panic action"
-                panic_action qtoggleserver
+                panic action qtoggleserver "not responding for ${WATCH_TIMEOUT} seconds"
                 break
             fi
         fi

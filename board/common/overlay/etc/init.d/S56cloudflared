@@ -42,7 +42,7 @@ watch() {
                 count=$((${count} + 1))
                 continue
             else
-                panic_action cloudflared "service dead"
+                panic action cloudflared "service dead"
                 break
             fi
         fi
