@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-RPORT_VERSION = 0.9.0
+RPORT_VERSION = 0.9.5
 
 RPORT_ARCH = $(call qstrip,$(BR2_ARCH))
 ifeq ($(RPORT_ARCH), arm)
