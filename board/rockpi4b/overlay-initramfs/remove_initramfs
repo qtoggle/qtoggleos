@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cat /boot/extlinux.conf | grep -v initrd > /boot/extlinux.conf.new
+mv /boot/extlinux.conf.new /boot/extlinux.conf

@@ -1,0 +1,1 @@
+cmdline=rootwait ro rootflags=noload console=ttyFIQ0,1500000 panic=10 hung_task_panic=1 quiet loglevel=1
