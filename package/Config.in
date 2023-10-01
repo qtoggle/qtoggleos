@@ -2352,7 +2352,6 @@ endif
 	source "package/redir/Config.in"
 	source "package/rp-pppoe/Config.in"
 	source "package/rpcbind/Config.in"
-	source "package/rport/Config.in"
 	source "package/rsh-redone/Config.in"
 	source "package/rsync/Config.in"
 	source "package/rtorrent/Config.in"
