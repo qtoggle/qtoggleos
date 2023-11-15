@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-QTOGGLESERVER_VERSION = 0.27.0b2
+QTOGGLESERVER_VERSION = 0.27.0b3
 QTOGGLESERVER_SOURCE = qtoggleserver-$(QTOGGLESERVER_VERSION).tar.gz
 QTOGGLESERVER_SITE = https://github.com/qtoggle/qtoggleserver/releases/download/version-$(QTOGGLESERVER_VERSION)
 QTOGGLESERVER_SETUP_TYPE = setuptools
