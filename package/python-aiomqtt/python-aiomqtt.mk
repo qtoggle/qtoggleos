@@ -12,4 +12,11 @@ PYTHON_AIOMQTT_LICENSE = AS-IS
 PYTHON_AIOMQTT_LICENSE_FILES = LICENSE
 PYTHON_AIOMQTT_DEPENDENCIES = python-paho-mqtt
 
-$(eval $(python-package))
+# TODO: remove this once we upgrade qToggleOS to a BuildToot version with PEP517 support
+define PYTHON_AIOMQTT_INSTALL_TARGET_CMDS
+        cp -r $(@D)/aiomqtt \
+                $(TARGET_DIR)/usr/lib/python3.9/site-packages
+endef
+
+# TODO: replace with `python-package`
+$(eval $(generic-package))
