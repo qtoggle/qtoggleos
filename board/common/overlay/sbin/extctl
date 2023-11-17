@@ -127,7 +127,7 @@ function update() {
         fi
     done
     
-    test ${has_update} == true || msg "No updates"
+    test ${has_update} == true || msg "extctl: No updates"
 }
 
 case ${cmd} in
