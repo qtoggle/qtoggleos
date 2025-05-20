@@ -33,6 +33,10 @@ NET_CONFIG_FILES=(
 emmc_dev=$1
 
 source /tmp/disk_info
+if [[ "${DISK_DEV}" == "${emmc_dev}" ]]; then
+    msg "SD card and eMMC devices are the same"
+    exit 1
+fi
 
 msg "SD card device is ${DISK_DEV}"
 
@@ -41,10 +45,16 @@ root_info=(${root_info})
 
 root_end_sector=${root_info[2]}
 total_size=$(((root_end_sector + 1) * 512 / 10485760))  # x 10MB
+root_part_no=$(echo ${ROOT_DEV} | grep -oE '[0-9]$')
 
-msg "Unmounting all EMMC partitions"
+msg "Unmounting all eMMC partitions"
 umount ${emmc_dev}* &>/dev/null
 partx -d ${emmc_dev} &>/dev/null
+
+msg "Wiping any GPT backup from eMMC"
+emmc_sectors=$(fdisk -l ${emmc_dev} 2>/dev/null | head -n1 | grep -oE '[[:digit:]]+ sectors' | cut -d ' ' -f 1)
+dd if=/dev/zero of=${emmc_dev} seek=$(( emmc_sectors - 34 )) count=34 status=none
+sync
 
 msg "Copying ${total_size}0MB from ${DISK_DEV} to ${emmc_dev}"
 dd if=${DISK_DEV} of=${emmc_dev} bs=10M count=${total_size} status=none
@@ -53,17 +63,27 @@ partx -a ${emmc_dev} &>/dev/null
 
 sleep 1
 
-msg "Removing data partition from EMMC"
-fdisk >/dev/null ${emmc_dev} <<END
+msg "Removing data partition from eMMC"
+if [[ "${PART_TABLE_TYPE}" == gpt ]]; then
+    gdisk &>/dev/null ${emmc_dev} <<END
 d
-3
+$(( root_part_no + 1 ))
+w
+Y
+END
+else
+    fdisk >/dev/null ${emmc_dev} <<END
+d
+$(( root_part_no + 1 ))
 w
 END
+fi
 sync
 
-msg "Mounting ${emmc_dev}p1 boot partition"
+emmc_boot_dev=${emmc_dev}p$(( root_part_no - 1 ))
+msg "Mounting ${emmc_boot_dev} boot partition"
 mkdir -p /data/.emmc_boot
-mount ${emmc_dev}p1 /data/.emmc_boot
+mount ${emmc_boot_dev} /data/.emmc_boot
 cd /data/.emmc_boot
 
 if [[ -f toemmc.conf ]]; then
