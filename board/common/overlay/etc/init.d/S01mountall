@@ -72,8 +72,9 @@ function mk_tty_login() {
     ln -sf ${console} /dev/ttylogin
 }
 
-prepare_ext_overlays() {
+function prepare_ext_overlays() {
     shopt -s nullglob
+    truncate -s0 /tmp/fstab.overlay_ext
     for dir in ${EXT_DIR}/*; do
         ext=$(basename ${dir})
         if ! [[ -s ${dir}/metadata ]]; then
@@ -88,10 +89,14 @@ prepare_ext_overlays() {
             test -d ${dir} || continue
             dn=$(basename ${dir})
             line="overlay /${dn} overlay lowerdir=/${dn},upperdir=${EXT_DIR}/${ext}/root/${dn},workdir=/data/.overlay-ext-${ext}-${dn} 0 0"
-            echo "${line}" >> /tmp/fstab.overlay
+            echo "${line}" >> /tmp/fstab.overlay_ext
         done
         msg_done
     done
+    
+    cat /tmp/fstab.overlay_ext /tmp/fstab.overlay | grep -vE '^#' > /tmp/fstab.overlay_new
+    mv /tmp/fstab.overlay_new /tmp/fstab.overlay
+    rm /tmp/fstab.overlay_ext
 }
 
 case "$1" in
