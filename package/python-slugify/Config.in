@@ -1,4 +1,0 @@
-config BR2_PACKAGE_PYTHON_SLUGIFY
-	bool "python-slugify"
-	depends on BR2_PACKAGE_PYTHON3
-	select BR2_PACKAGE_PYTHON_TEXT_UNIDECODE
