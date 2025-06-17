@@ -43,12 +43,3 @@ if [[ -n "${THINGOS_ROOT_PASSWORD_HASH}" ]] && [[ -f ${TARGET}/etc/shadow ]]; th
     sed -ri "s,root:[^:]+:,root:${THINGOS_ROOT_PASSWORD_HASH}:," ${TARGET}/etc/shadow
     sed -ri "s,admin:[^:]+:,admin:${THINGOS_ROOT_PASSWORD_HASH}:," ${TARGET}/etc/shadow
 fi
-
-# make sure "qtoggleserver" namespace is never touched by packages
-sed -ri 's/^qtoggleserver$//g' ${TARGET}/usr/lib/python*/site-packages/*.egg-info/top_level.txt
-
-# copy uncompiled Python source required by pip
-cp ${BUILD_DIR}/python-pip-21.2.4/src/pip/_vendor/pep517/in_process/_in_process.py \
-   ${TARGET}/usr/lib/python*/site-packages/pip/_vendor/pep517/in_process
-
-${COMMON_DIR}/copy_ext.sh
