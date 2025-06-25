@@ -1,4 +1,4 @@
-OS_NAME="thingOS"
-OS_SHORT_NAME="thingos"
-OS_PREFIX="thing"
+OS_NAME="qToggleOS"
+OS_SHORT_NAME="qtoggleos"
+OS_PREFIX="qtos"
 OS_VERSION="unknown"
