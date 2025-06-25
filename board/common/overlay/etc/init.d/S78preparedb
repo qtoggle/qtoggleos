@@ -1,0 +1,40 @@
+#!/bin/bash
+
+SYS_CONF="/etc/qtoggleserver.conf"
+BOOT_CONF="/boot/qtoggleserver.conf"
+CONF="/data/etc/qtoggleserver.conf"
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+prepare_conf ${CONF} ${SYS_CONF} ${BOOT_CONF}
+test -f ${CONF} || exit 0
+
+
+DB_NAME="qtoggleserver"
+PERSIST_DRIVER_RE="persist[[:space:]]*=?[[:space:]]*\{[^#\}d]*driver[[:space:]]*=[[:space:]]*\"?([a-zA-Z0-9.]+)\"?"
+[[ $(<${CONF}) =~ ${PERSIST_DRIVER_RE} ]] && PERSIST_DRIVER=${BASH_REMATCH[1]}
+
+function prepare_db() {
+    if [[ "${PERSIST_DRIVER}" =~ PostgreSQLDriver$ ]]; then
+        if ! psql -U postgres -Altw | grep -q ${DB_NAME}; then
+            msg_begin "Creating postgresql ${DB_NAME} db"
+            psql -U postgres -Atwq -c "CREATE DATABASE ${DB_NAME}"
+            test $? == 0 && msg_done || msg_fail
+        fi
+    fi
+}
+
+case "$1" in
+    start)
+        prepare_db
+        ;;
+
+    stop)
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac
+
+exit $?
