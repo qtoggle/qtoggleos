@@ -4,7 +4,6 @@
 
 ---
 
-# Philosophy
 
 **qToggleOS** is a lightweight OS that transforms a Raspberry Pi board into a [qToggle](https://github.com/qtoggle/docs) device.
 

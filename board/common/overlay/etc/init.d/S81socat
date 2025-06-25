@@ -1,0 +1,67 @@
+#!/bin/bash
+
+SYS_CONF="/etc/socat.conf"
+BOOT_CONF="/boot/socat.conf"
+USER_CONF="/data/etc/socat.conf"
+
+PROG="/usr/bin/socat"
+LOG="/var/log/socat-%s.log"
+
+test -x ${PROG} || exit 0
+test -n "${OS_VERSION}" || source /etc/init.d/base
+CONF=$(select_conf ${SYS_CONF} ${BOOT_CONF} ${USER_CONF})
+test -s "${CONF}" || exit 0
+
+
+function run_socat_daemon() {
+    while true; do
+        start_time=$(date +%s)
+        ${PROG} "$@"
+        stop_time=$(date +%s)
+        if (( stop_time - start_time < 2 )); then
+            # If `socat` exits right away, don't respawn it like crazy
+            sleep 10
+        fi
+    done
+}
+
+function start() {
+    source ${CONF}
+
+    index=1
+    for config in "${CONFIG[@]}"; do
+        msg_begin "Starting socat"
+        log=$(printf ${LOG} ${index})
+        run_socat_daemon ${config} &> ${log} &
+        msg_done "config ${index}"
+        index=$((index + 1))
+    done
+}
+
+function stop() {
+    msg_begin "Stopping socat"
+    ps | grep socat | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+    killall -q $(basename ${PROG})
+    msg_done
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+        
+    stop)
+        stop
+        ;;
+        
+    restart)
+        stop
+        start
+        ;;
+    
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit 0

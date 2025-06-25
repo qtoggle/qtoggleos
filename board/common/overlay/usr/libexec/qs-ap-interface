@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Find the first apX interface whose corresponding wlanX is not currently in use.                
+
+ap_ifaces=$(ip link | grep -oE 'ap[[:digit:]]')
+
+ap_iface=""
+for iface in ${ap_ifaces}; do
+    num=${iface: -1}
+    if ip route | grep -q " wlan${num} "; then
+        continue
+    fi
+    
+    ap_iface=${iface}
+    break
+done  
+
+echo QS_INTERFACE=${ap_iface}
