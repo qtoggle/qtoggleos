@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [[ "$1" == "get" ]]; then
+    temp=$(</sys/class/thermal/thermal_zone0/temp)
+    echo "QS_VALUE=$((temp / 1000))"
+fi
