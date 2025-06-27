@@ -1,0 +1,12 @@
+services:
+  qtoggleserver:
+    image: qtoggle/qtoggleserver:${QTOGGLESERVER_VERSION}
+    hostname: qtoggleserver
+    container_name: qtoggleserver
+    restart: unless-stopped
+    network_mode: host
+    privileged: true
+    volumes:
+      - /data/qtoggleserver:/data
+      - /usr/libexec/qtoggleserver:/usr/libexec/qtoggleserver
+
