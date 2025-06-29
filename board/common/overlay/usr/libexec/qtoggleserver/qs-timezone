@@ -1,16 +1,17 @@
 #!/bin/bash
 
-LOCALTIME_FILE="/data/etc/localtime"
+HOST_LOCALTIME_FILE="/host/data/etc/localtime"
+CONTAINER_LOCALTIME_FILE="/etc/localtime"
 ZONEINFO_PATH="/usr/share/zoneinfo/"
 
 if [[ "$1" == "set" ]]; then
-    rm -f ${LOCALTIME_FILE}
     if [[ -n ${QS_TIMEZONE} ]]; then
-        ln -s ${ZONEINFO_PATH}${QS_TIMEZONE} ${LOCALTIME_FILE}
+        ln -sf ${ZONEINFO_PATH}${QS_TIMEZONE} ${HOST_LOCALTIME_FILE}
+        ln -sf ${ZONEINFO_PATH}${QS_TIMEZONE} ${CONTAINER_LOCALTIME_FILE}
     fi
 elif [[ "$1" == "get" ]]; then
-    if [[ -f "${LOCALTIME_FILE}" ]]; then
-        link=$(readlink ${LOCALTIME_FILE})
+    if [[ -f "${HOST_LOCALTIME_FILE}" ]]; then
+        link=$(readlink ${HOST_LOCALTIME_FILE})
         timezone=${link:${#ZONEINFO_PATH}}
         echo "QS_TIMEZONE=${timezone}"
     else
