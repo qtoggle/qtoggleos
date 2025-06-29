@@ -8,4 +8,5 @@ services:
     privileged: true
     volumes:
       - /data/qtoggleserver:/data
+      - /etc/qtoggleserver.conf.default:/usr/share/qtoggleserver/qtoggleserver.conf.sample
       - /:/host
