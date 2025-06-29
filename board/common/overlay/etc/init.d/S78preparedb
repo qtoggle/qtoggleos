@@ -15,9 +15,9 @@ PERSIST_DRIVER_RE="persist[[:space:]]*=?[[:space:]]*\{[^#\}d]*driver[[:space:]]*
 [[ $(<${CONF}) =~ ${PERSIST_DRIVER_RE} ]] && PERSIST_DRIVER=${BASH_REMATCH[1]}
 
 function prepare_db() {
-    if [[ "${PERSIST_DRIVER}" =~ PostgreSQLDriver$ ]]; then
+    if [[ "${PERSIST_DRIVER}" =~ PostgresDriver$ ]]; then
         if ! psql -U postgres -Altw | grep -q ${DB_NAME}; then
-            msg_begin "Creating postgresql ${DB_NAME} db"
+            msg_begin "Creating postgres ${DB_NAME} db"
             psql -U postgres -Atwq -c "CREATE DATABASE ${DB_NAME}"
             test $? == 0 && msg_done || msg_fail
         fi

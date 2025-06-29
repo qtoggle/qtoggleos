@@ -1,0 +1,142 @@
+
+debug = false
+
+#public_url = "https://qtoggle.example.com"
+
+# See https://docs.python.org/3.10/library/logging.config.html#logging-config-dictschema
+logging = {
+    root = {
+        level = "INFO"
+    }
+}
+
+core = {
+    device_name = {
+        get_cmd = "/host/usr/libexec/qtoggleserver/qs-device-name get"
+        set_cmd = "/host/usr/libexec/qtoggleserver/qs-device-name set"
+    }
+    passwords = {
+        set_cmd = "/host/usr/libexec/qtoggleserver/qs-password set"
+    }
+
+    tick_interval = 100          # how often to update everything, in milliseconds
+    event_queue_size = 1024      # maximum number of queued events in a session
+    max_client_time_skew = 3600  # maximum accepted time skew when authenticating clients, in seconds
+
+    backup_support = true
+    history_support = true
+    history_janitor_interval = 3600
+    listen_support = true
+    sequences_support = true
+    tls_support = true
+    virtual_ports = 1024
+}
+
+server = {
+    addr = "0.0.0.0"
+    port = 80  # use 443 for HTTPS
+    compress_response = true
+
+#    https = {
+#        cert_file = "/data/etc/ssl/cert.pem"
+#        key_file = "/data/etc/ssl/privkey.pem"
+#    }
+}
+
+# JSON persistence driver
+#persist = {
+#    driver = "qtoggleserver.drivers.persist.JSONDriver"
+#    file_path = "/data/qtoggleserver-data.json"
+#}
+
+# Redis persistence driver
+#persist = {
+#    driver = "qtoggleserver.drivers.persist.RedisDriver"
+#    host = "127.0.0.1"
+#    port = 6379
+#    db = 0
+#}
+
+# MongoDB persistence driver
+#persist = {
+#    driver = "qtoggleserver.drivers.persist.MongoDriver"
+#    host = "host.example.com"
+#    port = 27017
+#    db = "qtoggleserver"
+#}
+
+# Postgres persistence driver
+persist = {
+    driver = "qtoggleserver.drivers.persist.PostgresDriver"
+    host = "127.0.0.1"
+    port = 5432
+    db = "qtoggleserver"
+    username = "postgres"
+}
+
+system = {
+    setup_mode_cmd = "/host/usr/libexec/qtoggleserver/qs-setup-mode"
+    timezone = {
+        get_cmd = "/host/usr/libexec/qtoggleserver/qs-timezone get"
+        set_cmd = "/host/usr/libexec/qtoggleserver/qs-timezone set"
+    }
+    net = {
+        wifi = {
+            get_cmd = "/host/usr/libexec/qtoggleserver/qs-wifi get"
+            set_cmd = "/host/usr/libexec/qtoggleserver/qs-wifi set"
+        }
+        ip = {
+            get_cmd = "/host/usr/libexec/qtoggleserver/qs-ip get"
+            set_cmd = "/host/usr/libexec/qtoggleserver/qs-ip set"
+        }
+    }
+    storage = {
+        path = "/data"
+    }
+    temperature = {
+        get_cmd = "/host/usr/libexec/qtoggleserver/qs-temperature get"
+    }
+    fwupdate = {
+        driver = "thingos.ThingOSDriver"
+    }
+}
+
+frontend = {
+    enabled = true
+    debug = false
+}
+
+slaves = {
+    enabled = true
+    timeout = 10            # timeout, in seconds, when communicating with slaves
+    keepalive = 10          # long-polling timeout, in seconds, when waiting for slave events
+    retry_interval = 5      # how often to retry a failed API request, in seconds
+    retry_count = 3         # max number of retries upon failed API requests
+
+    discover = {
+        dhcp_timeout = 10           # increase this if your DHCP server responds slowly to queries
+        ap = {
+            interface_cmd = "/host/usr/libexec/qtoggleserver/qs-ap-interface"
+            finish_timeout = 300    # for how long to keep the discovery AP up
+        }
+    }
+}
+
+peripherals = [
+#    {
+#        driver = "qtoggleserver.my.peripheral.Driver"
+#        name = "my_peripheral"
+#        param1 = "value1"
+#    }
+]
+
+ports = [
+#    {
+#        driver = "qtoggleserver.drivers.ports.gpio.GPIO"
+#        no = 10
+#    }
+]
+
+port_mappings = {
+#    "old_id" = "new_id"
+}
