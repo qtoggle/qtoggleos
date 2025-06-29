@@ -1,8 +1,8 @@
 #!/bin/bash
 
-WPA_SUPPLICANT_CONF="/data/etc/wpa_supplicant.conf"
+WPA_SUPPLICANT_CONF="/host/data/etc/wpa_supplicant.conf"
 
-source /etc/init.d/os_conf  # Needed for OS_WLAN
+OS_WLAN=$(chroot /host /bin/bash -c 'source /etc/init.d/os_conf && echo ${OS_WLAN}')
 
 
 if [[ "$1" == "set" ]]; then
@@ -16,7 +16,7 @@ if [[ "$1" == "set" ]]; then
         cat ${WPA_SUPPLICANT_CONF} | grep -vE '^ *ssid=' > ${WPA_SUPPLICANT_CONF}.tmp
         mv ${WPA_SUPPLICANT_CONF}.tmp ${WPA_SUPPLICANT_CONF}
     fi
-    
+
     if [[ -n "${QS_BSSID}" ]]; then
         if grep -E '^ *bssid=' ${WPA_SUPPLICANT_CONF} &>/dev/null; then
             sed -ri "s/^( *bssid=).*/\1${QS_BSSID}/" ${WPA_SUPPLICANT_CONF}
@@ -27,7 +27,7 @@ if [[ "$1" == "set" ]]; then
         cat ${WPA_SUPPLICANT_CONF} | grep -vE '^ *bssid=' > ${WPA_SUPPLICANT_CONF}.tmp
         mv ${WPA_SUPPLICANT_CONF}.tmp ${WPA_SUPPLICANT_CONF}
     fi
-    
+
     if [[ -n "${QS_PSK}" ]]; then
         if grep -E '^ *psk=' ${WPA_SUPPLICANT_CONF} &>/dev/null; then
             sed -ri "s/^( *psk=)\".*\"/\1\"${QS_PSK}\"/" ${WPA_SUPPLICANT_CONF}
@@ -46,14 +46,14 @@ if [[ "$1" == "set" ]]; then
         mv ${WPA_SUPPLICANT_CONF}.tmp ${WPA_SUPPLICANT_CONF}
     fi
 elif [[ "$1" == "get" ]]; then
-    if [[ -f /data/etc/wpa_supplicant.conf ]]; then
-        ssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *ssid=' | cut -d '=' -f 2)
-        psk=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *psk=' | cut -d '=' -f 2)
-        bssid=$(cat /data/etc/wpa_supplicant.conf | grep -E '^ *bssid=' | cut -d '=' -f 2)
+    if [[ -f ${WPA_SUPPLICANT_CONF} ]]; then
+        ssid=$(cat ${WPA_SUPPLICANT_CONF} | grep -E '^ *ssid=' | cut -d '=' -f 2)
+        psk=$(cat ${WPA_SUPPLICANT_CONF} | grep -E '^ *psk=' | cut -d '=' -f 2)
+        bssid=$(cat ${WPA_SUPPLICANT_CONF} | grep -E '^ *bssid=' | cut -d '=' -f 2)
         bssid_current=$(iw dev ${OS_WLAN} link | grep -oE 'Connected to [^ ]+' | cut -d ' ' -f 3)
         rssi_current=$(iw dev wlan0 link | grep -E "signal: -[[:digit:]]+" | cut -d ' ' -f 2)
     fi
-    
+
     echo "QS_SSID=${ssid}"
     echo "QS_PSK=${psk}"
     echo "QS_BSSID=${bssid}"

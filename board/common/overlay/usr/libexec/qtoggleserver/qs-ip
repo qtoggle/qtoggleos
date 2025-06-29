@@ -1,10 +1,10 @@
 #!/bin/bash
 
-STATIC_IP_CONF="/data/etc/static_ip.conf"
+STATIC_IP_CONF="/host/data/etc/static_ip.conf"
 
 if [[ "$1" == "set" ]]; then
     echo -n > ${STATIC_IP_CONF}
-    
+
     if [[ -n "${QS_ADDRESS}" ]] && [[ -n "${QS_NETMASK}" ]]; then
         echo "STATIC_IP=${QS_ADDRESS}/${QS_NETMASK}" > ${STATIC_IP_CONF}
     fi
@@ -21,7 +21,7 @@ elif [[ "$1" == "get" ]]; then
     echo "QS_NETMASK=${STATIC_IP[1]}"
     echo "QS_GATEWAY=${STATIC_GW}"
     echo "QS_DNS=${STATIC_DNS}"
-    
+
     # Obtain current IP info
     gw_if=$(ip route list | grep default | cut -d ' ' -f 3,5)
     if [[ -n "${gw_if}" ]]; then
