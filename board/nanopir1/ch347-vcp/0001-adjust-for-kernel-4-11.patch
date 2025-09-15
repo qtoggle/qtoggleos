@@ -1,0 +1,58 @@
+diff -uNr ch347-vcp-orig/gpio-ch347.c ch347-vcp-new/gpio-ch347.c
+--- ch347-vcp-orig/gpio-ch347.c	2024-01-15 15:23:21.000000000 +0200
++++ ch347-vcp-new/gpio-ch347.c	2025-09-15 11:25:01.486980518 +0300
+@@ -70,25 +70,6 @@
+ 	return (ch347->ibuf[3 + offset] & 0x80) ? GPIO_LINE_DIRECTION_OUT : GPIO_LINE_DIRECTION_IN;
+ }
+ 
+-static int ch347_gpio_get_multiple(struct gpio_chip *chip, unsigned long *mask, unsigned long *bits)
+-{
+-	int rc;
+-	unsigned i;
+-	struct ch347_gpio *ch347 = gpiochip_get_data(chip);
+-	memset(ch347->obuf + 3, 0, 8); // clear all pins
+-	rc = gpio_transfer(ch347);
+-
+-	if (rc < 0)
+-		return rc;
+-	*bits = 0;
+-	for (i = 0; i < CH347_GPIO_NUM_PINS; ++i) {
+-		if (*mask & BIT(i) && (ch347->ibuf[3 + i] & 0x40)) {
+-			*bits |= BIT(i);
+-		}
+-	}
+-	return 0;
+-}
+-
+ static void ch347_gpio_set(struct gpio_chip *chip, unsigned int offset, int value)
+ {
+ 	struct ch347_gpio *ch347 = gpiochip_get_data(chip);
+@@ -165,7 +146,7 @@
+ 	ch347->gpio.label = "ch347";
+ 	ch347->gpio.parent = dev;
+ 	ch347->gpio.owner = THIS_MODULE;
+-	ch347->gpio.base = -1;
++	ch347->gpio.base = 300;
+ 	ch347->gpio.ngpio = CH347_GPIO_NUM_PINS;
+ 	ch347->gpio.can_sleep = true;
+ 
+@@ -175,7 +156,6 @@
+ 	ch347->gpio.set_multiple = ch347_gpio_set_multiple;
+ 
+ 	ch347->gpio.get = ch347_gpio_get;
+-	ch347->gpio.get_multiple = ch347_gpio_get_multiple;
+ 
+ 	ch347->gpio.get_direction = ch347_gpio_get_direction;
+ 	ch347->gpio.direction_input = ch347_gpio_direction_input;
+diff -uNr ch347-vcp-orig/spi-ch347.c ch347-vcp-new/spi-ch347.c
+--- ch347-vcp-orig/spi-ch347.c	2024-01-15 15:23:21.000000000 +0200
++++ ch347-vcp-new/spi-ch347.c	2025-09-15 11:30:38.808108450 +0300
+@@ -37,7 +37,7 @@
+ MODULE_PARM_DESC(num_cs, "CS num: (1 or 2)");
+ 
+ const unsigned MAX_SPI_SPEED = 60*1000*1000; //HZ
+-const unsigned MIN_SPI_SPEED = MAX_SPI_SPEED >> 7;
++const unsigned MIN_SPI_SPEED = (60*1000*1000) >> 7;
+ const unsigned MAX_XFER_RX = IO_BUF_SIZE_RX - 3;
+ const unsigned MAX_XFER_TX = IO_BUF_SIZE_TX - 3;
+ 

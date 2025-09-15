@@ -467,6 +467,7 @@ endmenu
 	source "package/cbootimage/Config.in"
 	source "package/cc-tool/Config.in"
 	source "package/cdrkit/Config.in"
+	source "package/ch347-vcp/Config.in"
 	source "package/cpuburn-arm/Config.in"
 	source "package/cryptsetup/Config.in"
 	source "package/cwiid/Config.in"
