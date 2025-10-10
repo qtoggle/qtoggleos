@@ -9,4 +9,5 @@ services:
     volumes:
       - /data/qtoggleserver:/data
       - /etc/qtoggleserver.conf.default:/usr/share/qtoggleserver/qtoggleserver.conf.sample
+      - /usr/libexec/qtoggleserver/reboot:/sbin/reboot
       - /:/host
