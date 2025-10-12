@@ -6,6 +6,8 @@ services:
     network_mode: host
     uts: host
     privileged: true
+    environment:
+      PYTHONPATH: /host/usr/lib/qtoggleserver/site-packages
     volumes:
       - /data/qtoggleserver:/data
       - /etc/qtoggleserver.conf.default:/usr/share/qtoggleserver/qtoggleserver.conf.sample
