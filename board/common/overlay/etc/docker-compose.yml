@@ -9,6 +9,7 @@ services:
     environment:
       PYTHONPATH: /host/usr/lib/qtoggleserver/site-packages
     volumes:
+      - /var/run/dbus/:/var/run/dbus/:z
       - /data/qtoggleserver:/data
       - /etc/qtoggleserver.conf.default:/usr/share/qtoggleserver/qtoggleserver.conf.sample
       - /usr/libexec/qtoggleserver/reboot:/sbin/reboot
