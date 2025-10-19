@@ -1,0 +1,20 @@
+#!/bin/bash
+
+latest_version=$(/usr/libexec/qtoggleserver/qs-latest-version | cut -d ' ' -f 1)
+if [[ -s /data/etc/docker-compose.env ]]; then
+    current_version=$(cat /data/etc/docker-compose.env | grep -E ^QTOGGLESERVER_VERSION= | head -n 1 | cut -d = -f 2)
+else
+    current_version=$(cat /etc/docker-compose.env | grep -E ^QTOGGLESERVER_VERSION= | head -n 1 | cut -d = -f 2)
+fi
+
+if [[ "${latest_version}" != "${current_version}" ]]; then
+    echo "Updating QS version from ${current_version} to ${latest_version}"
+    line="QTOGGLESERVER_VERSION=${latest_version}"
+    if [[ -s /data/etc/docker-compose.env ]]; then
+        cat /data/etc/docker-compose.env | grep -vE ^QTOGGLESERVER_VERSION= > /data/etc/docker-compose.env.new
+        mv /data/etc/docker-compose.env.new /data/etc/docker-compose.env
+    fi
+    echo "${line}" > /data/etc/docker-compose.env
+    exit 1  # reboot needed
+fi
+
