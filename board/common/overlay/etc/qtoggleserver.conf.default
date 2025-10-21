@@ -70,8 +70,8 @@ persist = {
     driver = "qtoggleserver.drivers.persist.PostgresDriver"
     host = "127.0.0.1"
     port = 5432
-    db = "qtoggleserver"
     username = "postgres"
+    db = "qtoggleserver"
 }
 
 system = {
@@ -97,7 +97,7 @@ system = {
         get_cmd = "/host/usr/libexec/qtoggleserver/qs-temperature get"
     }
     fwupdate = {
-        driver = "thingos.ThingOSDriver"
+        driver = "qtoggleos.fwupdate.FWUpdateDriver"
     }
 }
 
