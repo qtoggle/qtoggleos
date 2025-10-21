@@ -215,11 +215,6 @@ rm -f ${TARGET}/etc/init.d/S80dhcp-server
 rm -f ${TARGET}/etc/init.d/S80dnsmasq
 rm -f ${TARGET}/etc/init.d/S91smb
 
-# docker
-rm -f ${TARGET}/usr/bin/containerd-shim
-rm -f ${TARGET}/usr/bin/containerd-shim-runc-v1
-rm -f ${TARGET}/usr/bin/ctr
-
 # other unwanted dirs
 rm -rf ${TARGET}/data/*
 rm -rf ${TARGET}/run
