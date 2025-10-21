@@ -1,0 +1,20 @@
+#!/bin/bash
+
+HOST_LOCALTIME_FILE="/host/data/etc/localtime"
+CONTAINER_LOCALTIME_FILE="/etc/localtime"
+ZONEINFO_PATH="/usr/share/zoneinfo/"
+
+if [[ "$1" == "set" ]]; then
+    if [[ -n ${QS_TIMEZONE} ]]; then
+        ln -sf ${ZONEINFO_PATH}${QS_TIMEZONE} ${HOST_LOCALTIME_FILE}
+        ln -sf ${ZONEINFO_PATH}${QS_TIMEZONE} ${CONTAINER_LOCALTIME_FILE}
+    fi
+elif [[ "$1" == "get" ]]; then
+    if [[ -f "${HOST_LOCALTIME_FILE}" ]]; then
+        link=$(readlink ${HOST_LOCALTIME_FILE})
+        timezone=${link:${#ZONEINFO_PATH}}
+        echo "QS_TIMEZONE=${timezone}"
+    else
+        echo "QS_TIMEZONE=UTC"
+    fi
+fi

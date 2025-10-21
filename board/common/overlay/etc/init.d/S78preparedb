@@ -1,0 +1,28 @@
+#!/bin/bash
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+DB_NAME="qtoggleserver"
+
+function prepare_db() {
+    if ! psql -U postgres -Altw | grep -q ${DB_NAME}; then
+        msg_begin "Creating postgres ${DB_NAME} db"
+        psql -U postgres -Atwq -c "CREATE DATABASE ${DB_NAME}"
+        test $? == 0 && msg_done || msg_fail
+    fi
+}
+
+case "$1" in
+    start)
+        prepare_db
+        ;;
+
+    stop)
+        ;;
+
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+esac
+
+exit $?

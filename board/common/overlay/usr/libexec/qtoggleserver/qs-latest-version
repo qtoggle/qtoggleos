@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source /etc/init.d/base
+
+function to_semver() {
+    sed -r 's/a([0-9])+/-alpha.\1/g' | \
+    sed -r 's/b([0-9])+/-beta.\1/g' | \
+    sed -r 's/rc([0-9])+/-rc.\1/g'
+}
+
+function from_semver() {
+    sed -r 's/-alpha\./a/g' | \
+    sed -r 's/-beta\./b/g' | \
+    sed -r 's/-rc\./rc/g'
+}
+
+function fetch_recent_versions() {
+    curl -sSL "https://hub.docker.com/v2/repositories/qtoggle/qtoggleserver/tags/?page_size=100" | \
+    jq -r '.results[] | (.name + " " + .last_updated[:10])' | \
+    grep -v latest | \
+    to_semver | \
+    semver-sort -r -k 1 2>/dev/null
+}
+
+if [[ "${OS_PRERELEASES}" == true ]]; then
+    fetch_recent_versions | head -n 1 | from_semver
+else
+    fetch_recent_versions | grep -vE 'alpha|beta|rc' | head -n 1 | from_semver
+fi
+

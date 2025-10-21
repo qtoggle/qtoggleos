@@ -1,0 +1,100 @@
+#!/bin/bash
+
+DOCKER_CONTAINER_NAME=qtoggleserver
+VIRTUAL_ENV=/data/qtoggleserver
+
+function usage() {
+    echo "Usage: $0 <command> [params...]"
+    echo "       $0 list                  lists installed add-ons"
+    echo "       $0 install <add-on>      installs a new add-on"
+    echo "       $0 upgrade <add-on>      checks and upgrades an add-on"
+    echo "       $0 uninstall <add-on>    uninstalls an add-on"
+}
+
+function docker_exec() {
+    docker exec -it ${DOCKER_CONTAINER_NAME} "${@:1}"
+}
+
+function uv_pip() {
+    docker_exec uv pip "${@:1}"
+}
+
+function list() {
+    # $1 - full?
+    PYTHON_VER=$(docker_exec bash -c 'echo -n ${PYTHON_VERSION%.*}')
+    SITE_PACKAGES="${VIRTUAL_ENV}/lib/python${PYTHON_VER}/site-packages"
+    for package in ${SITE_PACKAGES}/*/; do
+        test -s ${package}/top_level.txt || continue
+        test "$(cat ${package}/top_level.txt)" == qtoggleserver || continue 
+        name=$(cat ${package}/METADATA | grep -E ^Name: | cut -d ' ' -f 2)
+        version=$(cat ${package}/METADATA | grep -E ^Version: | cut -d ' ' -f 2)
+        if [[ "$1" == full ]]; then
+            echo "${name} ${version}"
+        else
+            echo "${name}"
+        fi
+    done
+}
+
+function install() {
+    # $1 - package
+    test -n "$1" || { usage; return 1; }
+    
+    package=$1
+    if list | grep -qE "^${package}$"; then
+        echo "Add-on already installed"
+        return 1
+    fi
+
+    uv_pip install $1
+}
+
+function upgrade() {
+    # $1 - package
+    test -n "$1" || { usage; return 1; }
+    
+    package=$1
+    if ! list | grep -qE "^${package}$"; then
+        echo "Add-on not installed"
+        return 1
+    fi
+
+    uv_pip install --upgrade $1
+}
+
+function uninstall() {
+    # $1 - package
+    test -n "$1" || { usage; return 1; }
+    
+    package=$1
+    if ! list | grep -qE "^${package}$"; then
+        echo "Add-on not installed"
+        return 1
+    fi
+
+    uv_pip uninstall $1
+}
+
+
+case "$1" in
+    list)
+        list full
+        ;;
+
+    install)
+        install "${@:2}"
+        ;;
+
+    upgrade)
+        upgrade "${@:2}"
+        ;;
+
+    uninstall)
+        uninstall "${@:2}"
+        ;;
+    
+    *)
+        usage
+        exit 1
+esac
+

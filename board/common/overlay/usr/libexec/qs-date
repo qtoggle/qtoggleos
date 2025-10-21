@@ -1,5 +1,0 @@
-#!/bin/bash
-
-if [[ "$1" == "set" ]]; then
-    date -u -s "${QS_DATE}" >/dev/null
-fi

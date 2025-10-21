@@ -1,0 +1,57 @@
+#!/bin/bash
+
+REBOOT_FILE=/tmp/os_trigger
+WATCH_DELAY=2
+
+test -n "${OS_VERSION}" || source /etc/init.d/base
+
+function watch() {
+    sleep ${WATCH_DELAY}
+    
+    while true; do
+        sleep ${WATCH_DELAY}
+        test -s ${REBOOT_FILE} || continue
+        read -r line < ${REBOOT_FILE}
+        rm -f ${REBOOT_FILE}
+        if [[ "${line}" == reboot ]]; then
+            logger -t ostrigger "rebooting"
+            reboot
+            break
+        elif [[ "${line}" == poweroff ]]; then
+            logger -t ostrigger "poweroff"
+            poweroff
+            break
+        fi
+    done
+}
+
+function start() {
+    msg_begin "Starting ostrigger"
+    watch &
+    msg_done
+}
+
+function stop() {
+    msg_begin "Stopping ostrigger"
+    ps | grep "ostrigger" | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+    msg_done
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+        
+    stop)
+        stop
+        ;;
+        
+    restart)
+        stop
+        start
+        ;;
+    
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
