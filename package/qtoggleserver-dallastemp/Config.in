@@ -1,3 +1,0 @@
-config BR2_PACKAGE_QTOGGLESERVER_DALLASTEMP
-	bool "qtoggleserver-dallastemp"
-	depends on BR2_PACKAGE_PYTHON3 && BR2_PACKAGE_QTOGGLESERVER
