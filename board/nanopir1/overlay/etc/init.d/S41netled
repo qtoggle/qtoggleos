@@ -1,7 +1,7 @@
 #!/bin/bash
 
 NET_LED=LED2
-QS_CONF="/data/etc/qtoggleserver.conf"
+QS_CONF="/data/qtoggleserver/etc/qtoggleserver.conf"
 PORT_RE="server[[:space:]]*=?[[:space:]]*\{[^#\}p]*port[[:space:]]*=[[:space:]]*([0-9]+)"
 CERT_RE="https[[:space:]]*=?[[:space:]]*\{[^#\}c]*cert_file[[:space:]]*=[[:space:]]*([^#\} ]+)"
 
