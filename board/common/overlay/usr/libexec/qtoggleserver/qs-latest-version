@@ -3,9 +3,9 @@
 source /etc/init.d/base
 
 function to_semver() {
-    sed -r 's/a([0-9])+/-alpha.\1/g' | \
-    sed -r 's/b([0-9])+/-beta.\1/g' | \
-    sed -r 's/rc([0-9])+/-rc.\1/g'
+    sed -r 's/a([0-9]+)/-alpha.\1/g' | \
+    sed -r 's/b([0-9]+)/-beta.\1/g' | \
+    sed -r 's/rc([0-9]+)/-rc.\1/g'
 }
 
 function from_semver() {
