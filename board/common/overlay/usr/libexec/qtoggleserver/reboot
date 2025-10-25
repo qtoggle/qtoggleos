@@ -1,4 +1,4 @@
 #!/bin/bash
 
 # Hack to be able to reboot host OS from within container
-echo "reboot" > /host/var/run/os_trigger
+echo "reboot" > /host/tmp/os_trigger
