@@ -1,26 +1,35 @@
 #!/bin/bash
 
-REBOOT_FILE=/tmp/os_trigger
+OS_TRIGGER_FILE=/tmp/os_trigger
 WATCH_DELAY=2
 
 test -n "${OS_VERSION}" || source /etc/init.d/base
+
+function log() {
+    logger -t ostrigger "$1"
+}
 
 function watch() {
     sleep ${WATCH_DELAY}
     
     while true; do
         sleep ${WATCH_DELAY}
-        test -s ${REBOOT_FILE} || continue
-        read -r line < ${REBOOT_FILE}
-        rm -f ${REBOOT_FILE}
+        test -s ${OS_TRIGGER_FILE} || continue
+        read -r line < ${OS_TRIGGER_FILE}
+        rm -f ${OS_TRIGGER_FILE}
         if [[ "${line}" == reboot ]]; then
-            logger -t ostrigger "rebooting"
+            log "rebooting"
             reboot
             break
         elif [[ "${line}" == poweroff ]]; then
-            logger -t ostrigger "poweroff"
+            log "poweroff"
             poweroff
             break
+        elif [[ "${line}" == compose-pull ]]; then
+            log "compose-pull"
+            service dockercompose pull
+        else
+            log "unknown trigger command: ${line}"
         fi
     done
 }
