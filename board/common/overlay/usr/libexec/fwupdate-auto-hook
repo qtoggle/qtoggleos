@@ -15,6 +15,7 @@ if [[ "${latest_version}" != "${current_version}" ]]; then
         mv /data/etc/docker-compose.env.new /data/etc/docker-compose.env
     fi
     echo "${line}" > /data/etc/docker-compose.env
+    service dockercompose pull
     exit 1  # reboot needed
 fi
 
