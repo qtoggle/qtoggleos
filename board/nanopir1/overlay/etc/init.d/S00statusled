@@ -1,17 +1,54 @@
 #!/bin/bash
 
+NET_LED=status_led
+
+function turn_on() {
+    echo 1 > /sys/class/leds/${NET_LED}/brightness
+}
+
+function turn_off() {
+    echo 0 > /sys/class/leds/${NET_LED}/brightness
+}
+
+function is_fwupdate_idle() {
+    test "$(fwupdate status)" == idle
+}
+
+function is_docker_compose_pulling() {
+    ps aux | grep -v grep | grep -qE "docker.*compose.*pull" &>/dev/null
+}
+
+function watch_fwupdate() {
+    fwupdate=false
+    blink_on=0
+    while true; do
+        if ! is_fwupdate_idle || is_docker_compose_pulling; then
+            fwupdate=true
+            test ${blink_on} == 1 && turn_off || turn_on
+            blink_on=$(( 1- blink_on ))
+            usleep 500000
+        else
+            fwupdate=false
+            turn_on
+            sleep 1
+        fi
+    done
+}
+
+
 case "$1" in
     start)
-        echo 0 > /sys/class/leds/status_led/brightness
-        echo 1 > /sys/class/leds/status_led/brightness
+        turn_off
+        watch_fwupdate &
         ;;
 
     stop)
-        true
+        ps | grep statusled | grep -v $$ | grep -v grep | tr -s ' ' | sed -e 's/^\s//' | cut -d ' ' -f 1 | xargs -r kill
+        turn_off
         ;;
 
     *)
-        echo "Usage: $0 {start}"
+        echo "Usage: $0 {start|stop}"
         exit 1
 esac
 
