@@ -14,15 +14,11 @@ function is_fwupdate_idle() {
     test "$(fwupdate status)" == idle
 }
 
-function is_docker_compose_pulling() {
-    ps aux | grep -v grep | grep -qE "docker.*compose.*pull" &>/dev/null
-}
-
 function watch_fwupdate() {
     fwupdate=false
     blink_on=0
     while true; do
-        if ! is_fwupdate_idle || is_docker_compose_pulling; then
+        if ! is_fwupdate_idle; then
             fwupdate=true
             test ${blink_on} == 1 && turn_off || turn_on
             blink_on=$(( 1- blink_on ))
