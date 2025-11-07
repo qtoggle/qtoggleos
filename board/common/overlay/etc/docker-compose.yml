@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     network_mode: host
     uts: host
+    pid: host
     privileged: true
     environment:
       PYTHONPATH: /host/usr/lib/qtoggleserver/site-packages
