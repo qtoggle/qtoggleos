@@ -8,6 +8,10 @@ SYS_ENV=/etc/docker-compose.env
 BOOT_ENV=/boot/docker-compose.env
 USER_ENV=/data/etc/docker-compose.env
 
+SYS_ENV_SH=/etc/docker-compose.env.sh
+BOOT_ENV_SH=/boot/docker-compose.env.sh
+USER_ENV_SH=/data/etc/docker-compose.env.sh
+
 DOCKER=/usr/bin/docker
 LOG=/var/log/docker-compose.log
 
@@ -15,10 +19,16 @@ PROJ=system
 RUN_DIR=/var/run/docker-compose
 ENV_FILE=/tmp/docker-compose.env
 
+export COMPOSE_HTTP_TIMEOUT=600
+
 test -x ${DOCKER} || exit 0
 test -n "${OS_VERSION}" || source /etc/init.d/base
 CONF=$(append_conf ${SYS_CONF} ${BOOT_CONF} ${USER_CONF})
 test -n "${CONF}" || exit 0
+
+for env_sh_file in ${SYS_ENV_SH} ${BOOT_ENV_SH} ${USER_ENV_SH}; do
+    test -s ${env_sh_file} && source ${env_sh_file}
+done
 
 function make_env_file() {
     echo -n > ${ENV_FILE}
@@ -28,7 +38,7 @@ function make_env_file() {
 }
 
 function start() {
-    msg_begin "Starting docker-compose"
+    msg_begin "Starting docker compose"
     
     # Wait for dockerd to start
     running=false
@@ -46,7 +56,6 @@ function start() {
     fi
 
     mkdir -p ${RUN_DIR}
-    export COMPOSE_HTTP_TIMEOUT=600
     
     make_env_file
     conf=$(echo ${CONF} | sed 's/ / -f /g')
@@ -58,7 +67,7 @@ function start() {
 }
 
 function stop() {
-    msg_begin "Stopping docker-compose"
+    msg_begin "Stopping docker compose"
     
     make_env_file
     conf=$(echo ${CONF} | sed 's/ / -f /g')
@@ -68,14 +77,22 @@ function stop() {
 }
 
 function pull() {
-    msg_begin "Pulling docker-compose images"
+    msg_begin "Pulling docker compose images"
     
     make_env_file
     conf=$(echo ${CONF} | sed 's/ / -f /g')
-    export COMPOSE_HTTP_TIMEOUT=600
 
     ${DOCKER} compose --env-file ${ENV_FILE} -p ${PROJ} --project-directory ${RUN_DIR} -f ${conf} pull &>>${LOG}
     test $? == 0 && msg_done || msg_fail
+}
+
+function generic_command() {
+    msg "Running docker compose $1"
+
+    make_env_file
+    conf=$(echo ${CONF} | sed 's/ / -f /g')
+
+    ${DOCKER} compose --env-file ${ENV_FILE} -p ${PROJ} --project-directory ${RUN_DIR} -f ${conf} "${@:1}"
 }
 
 case "$1" in
@@ -97,8 +114,7 @@ case "$1" in
         ;;
     
     *)
-        echo "Usage: $0 {start|stop|restart|pull}"
-        exit 1
+        generic_command "${@:1}"
         ;;
 esac
 
