@@ -15,4 +15,6 @@ services:
       - /etc/qtoggleserver.conf.default:/usr/share/qtoggleserver/qtoggleserver.conf.sample
       - /etc/localtime:/etc/localtime
       - /usr/libexec/qtoggleserver/reboot:/sbin/reboot
+      - /dev:/dev
       - /:/host
+
