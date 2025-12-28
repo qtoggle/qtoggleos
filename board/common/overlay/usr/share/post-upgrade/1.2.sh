@@ -26,6 +26,7 @@ metadata = [
     {
        "name": "qtoggleos.remote.password"
        "cmd": "/host/usr/libexec/qtoggleserver/qs-remote password"
+       "sensitive": true
     }
 ]'
 
