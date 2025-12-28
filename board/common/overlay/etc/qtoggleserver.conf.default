@@ -30,6 +30,17 @@ core = {
     sequences_support = true
     tls_support = true
     virtual_ports = 1024
+
+    device_attrs = [
+        {
+            "driver": "qtoggleserver.drivers.device_attrs.CmdLineAttrDef"
+            "name": "serial_number"
+            "display_name": "Serial Number"
+            "description": "The serial number of the device"
+            "type": "string"
+            "get_cmd": "/host/usr/libexec/qtoggleserver/qs-serial-number"
+        }
+    ]
 }
 
 server = {
@@ -140,3 +151,15 @@ ports = [
 port_mappings = {
 #    "old_id" = "new_id"
 }
+
+metadata = [
+    {
+       "name": "qtoggleos.remote.handle"
+       "cmd": "/host/usr/libexec/qtoggleserver/qs-remote handle"
+    }
+    {
+       "name": "qtoggleos.remote.password"
+       "cmd": "/host/usr/libexec/qtoggleserver/qs-remote password"
+    }
+]
+

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo QS_VALUE=$(/host/etc/init.d/boardsn)
