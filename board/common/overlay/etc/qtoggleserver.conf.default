@@ -162,4 +162,3 @@ metadata = [
        "cmd": "/host/usr/libexec/qtoggleserver/qs-remote password"
     }
 ]
-
