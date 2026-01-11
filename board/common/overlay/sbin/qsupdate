@@ -1,0 +1,82 @@
+#!/bin/bash
+
+set -e
+
+SYS_ENV_FILE=/etc/docker-compose.env
+DATA_ENV_FILE=/data/etc/docker-compose.env
+
+function exit_usage() {
+    echo "Manage installed qToggleServer version."
+    echo ""
+    echo "Usage:"
+    echo "    qsupdate current"
+    echo "        shows the current version"
+    echo "    qsupdate latest"
+    echo "        shows the latest available version"
+    echo "    qsupdate install <version|latest>"
+    echo "        installs a specific version"
+    echo ""
+
+    exit 1
+}
+
+function show_current() {
+    if [[ -s ${DATA_ENV_FILE} ]]; then
+        env_file=${DATA_ENV_FILE}
+    else
+        env_file=${SYS_ENV_FILE}
+    fi
+    
+    cat ${env_file} | grep QTOGGLESERVER_VERSION | cut -d '=' -f 2
+}
+
+function show_latest() {
+    /usr/libexec/qtoggleserver/qs-latest-version
+}
+
+function do_install() {
+    # $1 - version
+    version=$1
+    if [[ "${version}" == latest ]]; then
+        version=$(/usr/libexec/qtoggleserver/qs-latest-version | cut -d ' ' -f 1)
+    fi
+    
+    echo " * Updating to version ${version}"
+    if [[ -s ${DATA_ENV_FILE} ]]; then
+        if grep -qE "^QTOGGLESERVER_VERSION=.*" ${DATA_ENV_FILE}; then
+            sed -i "s/^QTOGGLESERVER_VERSION=.*/QTOGGLESERVER_VERSION=${version}/g" ${DATA_ENV_FILE}
+        else
+            echo "QTOGGLESERVER_VERSION=${version}" >> ${DATA_ENV_FILE}
+        fi
+    else
+        echo "QTOGGLESERVER_VERSION=${version}" > ${DATA_ENV_FILE}
+    fi
+    
+    service dockercompose pull
+}
+
+if [[ -z "$1" ]]; then
+    exit_usage
+fi
+
+case "$1" in
+    current)
+        show_current
+        ;;
+
+    latest)
+        show_latest
+        ;;
+
+    install)
+        if [[ -z "$2" ]]; then
+            exit_usage
+        fi
+
+        do_install "$2"
+        ;;
+
+    *)
+        exit_usage
+        ;;
+esac
