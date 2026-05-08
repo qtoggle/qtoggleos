@@ -25,6 +25,7 @@ if [ "$PS1" ]; then
     export EDITOR="/usr/bin/nano"
     export INPUTRC="/etc/inputrc"
     export TERM=linux
+    export LANG=en_US.UTF-8
 fi;
 
 export HISTFILE=/data/.bash_history
