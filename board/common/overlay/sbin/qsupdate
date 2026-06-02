@@ -13,8 +13,9 @@ function exit_usage() {
     echo "        shows the current version"
     echo "    qsupdate latest"
     echo "        shows the latest available version"
-    echo "    qsupdate install <version|latest>"
+    echo "    qsupdate install [-r] <version|latest>"
     echo "        installs a specific version"
+    echo "        -r: restart qtoggleserver service after install"
     echo ""
 
     exit 1
@@ -35,8 +36,20 @@ function show_latest() {
 }
 
 function do_install() {
-    # $1 - version
-    version=$1
+    # $1 - restart flag (optional)
+    # $2 - version
+    restart_service=false
+    version="$1"
+    
+    if [[ "$1" == "-r" ]]; then
+        restart_service=true
+        version="$2"
+    fi
+    
+    if [[ -z "${version}" ]]; then
+        exit_usage
+    fi
+    
     if [[ "${version}" == latest ]]; then
         version=$(/usr/libexec/qtoggleserver/qs-latest-version | cut -d ' ' -f 1)
     fi
@@ -53,6 +66,12 @@ function do_install() {
     fi
     
     service dockercompose pull
+    
+    if [[ "${restart_service}" == true ]]; then
+        echo " * Restarting qToggleServer service"
+        service dockercompose down qtoggleserver
+        service dockercompose up -d qtoggleserver
+    fi
 }
 
 if [[ -z "$1" ]]; then
@@ -73,7 +92,12 @@ case "$1" in
             exit_usage
         fi
 
-        do_install "$2"
+        if [[ "$2" == "-r" ]]; then
+            if [[ -z "$3" ]]; then
+                exit_usage
+            fi
+            do_install "${@:2}"
+        fi
         ;;
 
     *)
