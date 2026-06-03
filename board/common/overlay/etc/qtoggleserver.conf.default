@@ -133,14 +133,6 @@ slaves = {
     }
 }
 
-peripherals = [
-#    {
-#        driver = "qtoggleserver.my.peripheral.Driver"
-#        name = "my_peripheral"
-#        param1 = "value1"
-#    }
-]
-
 ports = [
 #    {
 #        driver = "qtoggleserver.drivers.ports.gpio.GPIO"
