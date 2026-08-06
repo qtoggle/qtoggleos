@@ -7,7 +7,7 @@ function usage() {
     echo "Usage: $0 <command> [params...]"
     echo "       $0 list                  lists installed add-ons"
     echo "       $0 install <add-on>      installs a new add-on"
-    echo "       $0 upgrade <add-on>      checks and upgrades an add-on"
+    echo "       $0 upgrade <add-on|all>  checks and upgrades an add-on or all installed add-ons"
     echo "       $0 uninstall <add-on>    uninstalls an add-on"
 }
 
@@ -52,14 +52,22 @@ function install() {
 function upgrade() {
     # $1 - package
     test -n "$1" || { usage; return 1; }
-    
+
+    if [[ "$1" == all ]]; then
+        local packages=()
+        mapfile -t packages < <(list)
+        test ${#packages[@]} -gt 0 || return 0
+        uv_pip install --upgrade "${packages[@]}"
+        return 0
+    fi
+
     package=$1
     if ! list | grep -qE "^${package}$"; then
         echo "Add-on not installed"
         return 1
     fi
 
-    uv_pip install --upgrade $1
+    uv_pip install --upgrade "${package}"
 }
 
 function uninstall() {
@@ -97,4 +105,3 @@ case "$1" in
         usage
         exit 1
 esac
-
