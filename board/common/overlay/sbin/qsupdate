@@ -88,16 +88,7 @@ case "$1" in
         ;;
 
     install)
-        if [[ -z "$2" ]]; then
-            exit_usage
-        fi
-
-        if [[ "$2" == "-r" ]]; then
-            if [[ -z "$3" ]]; then
-                exit_usage
-            fi
-            do_install "${@:2}"
-        fi
+        do_install "${@:2}"
         ;;
 
     *)
