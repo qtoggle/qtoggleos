@@ -49,6 +49,17 @@ function install() {
     uv_pip install $1
 }
 
+function upgrade_packages() {
+    # $@ - packages
+    # Unlike --upgrade, this leaves deps alone unless the new versions need newer ones
+    local upgrade_args=() package
+    for package in "$@"; do
+        upgrade_args+=(--upgrade-package "${package}")
+    done
+
+    uv_pip install "${upgrade_args[@]}" "$@"
+}
+
 function upgrade() {
     # $1 - package
     test -n "$1" || { usage; return 1; }
@@ -57,7 +68,7 @@ function upgrade() {
         local packages=()
         mapfile -t packages < <(list)
         test ${#packages[@]} -gt 0 || return 0
-        uv_pip install --upgrade "${packages[@]}"
+        upgrade_packages "${packages[@]}"
         return 0
     fi
 
@@ -67,7 +78,7 @@ function upgrade() {
         return 1
     fi
 
-    uv_pip install --upgrade "${package}"
+    upgrade_packages "${package}"
 }
 
 function uninstall() {
