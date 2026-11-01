@@ -4,7 +4,7 @@
 #
 ################################################################################
 
-CLOUDFLARED_VERSION = 2022.7.1
+CLOUDFLARED_VERSION = 2026.10.7
 
 CLOUDFLARED_ARCH = $(call qstrip,$(BR2_ARCH))
 ifeq ($(CLOUDFLARED_ARCH), arm)
